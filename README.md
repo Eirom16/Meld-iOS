@@ -155,21 +155,34 @@ For GitHub Actions builds, add these secrets to your repository:
 
 Go to the [latest release](https://github.com/FrancescoGrazioso/Meld/releases/latest) and download the **Meld.apk** file. Open it on your Android device — you may need to allow "Install from unknown sources" in your phone's settings when prompted. You do **not** need to download the source code files.
 
+### Q: I saw a Meld APK on a third-party website, is it safe?
+
+No, GitHub is the only place officially supported for Meld releases. Any other place is not official and thus can be dangerous.
+
+### Q: I saw Meld flagged by Malwarebytes or another antivirus, is it infected?
+
+No, it's a false positive. Meld is based on [Metrolist](https://github.com/metrolistgroup/metrolist) which is sometimes flagged with the same false positive. Both Meld and Metrolist are fully open-source projects using the GPL-3.0 license, with the entire source code accessible through [GitHub](https://github.com/FrancescoGrazioso/Meld).
+
+### Q: Is there a Meld PC app? When will it release?
+
+Not yet, but it is in the works and should release soon. No date is set in stone, but we estimate the release to be before the end of this year. (So if you ask "Meld PC?", the current answer is NO, but it's coming!)
+
 ### Q: I logged into Spotify but my playlists aren't showing
 
 After logging in, make sure you've enabled **"Use Spotify for Home"** and/or **"Use Spotify for Search"** in **Settings → Integrations → Spotify**. These are off by default. Then go back to the home screen and **pull down to refresh**. The first load may take a few seconds; subsequent launches will be instant thanks to local caching.
 
 ### Q: Songs aren't playing / playback is very slow to start
 
-If songs aren't playing or take a long time to start, try the following:
+If songs aren't playing or take a long time to start, try the following possible fixes:
 
-1. **Disable battery optimization for Meld** — Go to your phone's **Settings → Apps → Meld → Battery → Unrestricted** (or "No restrictions"). This is the most common fix. Android aggressively throttles background network and CPU usage for battery-optimized apps, which directly impacts Meld's stream resolution pipeline. Without this setting, playback may take over a minute to start, especially when the screen is locked.
-2. Wait a moment — the first playback after a fresh launch requires initializing the streaming engine (signature verification, token generation). Subsequent plays are much faster.
-3. Check your internet connection
-4. Try playing a different song
-5. Force-close and reopen the app
+1. **Disable battery optimization for Meld** — Go to your phone's **Settings → Apps → Meld → Battery → Unrestricted** (or "No restrictions"). This is the most common fix. Android aggressively throttles background network and CPU usage for battery-optimized apps.
+2. Go to **Settings → Player → Audio Quality** → set to low, wait a few seconds, then set to high.
+3. Force stop the app, clear the cache, then open it again.
+4. Log out of your Google account, then log back in again.
+5. Wait a moment — the first playback after a fresh launch requires initializing the streaming engine. Subsequent plays are much faster.
+6. Check your internet connection.
 
-In general for the first time you play a song it's normal for it to take alonger time, the process to download metadata from spotify, look for a correspondent on youtube and match it can take time, for some song more than others! From the second time it will be stored in a local DB and this process won't need to be run again
+In general, the first time you play a song it's normal for it to take a longer time (downloading metadata, YouTube matching). From the second time it will be stored in a local DB and this process won't be needed. If it's still broken, go to the support channel.
 
 ### Q: Does Meld work with Bluetooth headphones / AirPods?
 
@@ -185,32 +198,27 @@ Yes. Meld streams audio through YouTube Music's infrastructure like any other mu
 
 No. Meld uses Spotify for data only (your library, top tracks, search results) — not for audio streaming. Audio is streamed through YouTube Music. A free Spotify account works perfectly.
 
-### Q: Some songs won't play — I get a playback error
+### Q: Some songs won't play — I get a playback error or age/country restriction
 
-Certain tracks on YouTube may be age-restricted or region-locked. If you're not logged into YouTube, some of these tracks cannot be played because YouTube requires authentication to verify your identity. To fix this:
+This is a YouTube Music limitation and Meld can't do anything about it directly. Certain tracks on YouTube may be age-restricted or region-locked. If you're not logged into YouTube, some of these tracks cannot be played because YouTube requires authentication. To fix this:
 
 1. Go to **Settings → Account** and log in with your YouTube / Google account
 2. Go back and try playing the song again
 
 If the track still doesn't play after logging in, it may be restricted in your country or permanently unavailable.
 
-### Q: Why do some songs not match correctly?
+### Q: I get the wrong song, a cover, or just want to change the song version (matching issues)
 
-The Spotify-to-YouTube matching uses fuzzy matching on title, artist name, and duration. In rare cases (live versions, remasters, regional variants), the match may not be perfect. Matched results are cached locally so they're resolved instantly on subsequent plays.
-
-**You can manually fix an incorrect match.** The recommended way is through the player menu:
+The Spotify-to-YouTube matching uses fuzzy matching. You can manually fix an incorrect match:
 
 1. Play the song that has the wrong match
 2. Tap the **three-dot menu (⋮)** at the bottom-right of the Now Playing screen
 3. Tap **"Change YouTube version"** (this option only appears for Spotify-sourced tracks)
-4. You'll see the current match with its thumbnail, title, and YouTube link at the top
-5. Paste the correct YouTube or YouTube Music link in the input field below
-6. A preview of the new match will appear — verify it's the right one and tap **OK**
-7. The player will automatically switch to the new version
+4. Paste the correct YouTube or YouTube Music link in the input field
+5. A preview of the new match will appear — verify it's the right one and tap **OK**
+6. The player will automatically switch to the new version
 
-The override is saved permanently in your local database and will always be used for that Spotify track, even if the automatic matching would suggest a different result.
-
-You can also access "Change YouTube version" from the three-dot context menu of any song in your library, queue, or album view — as long as that song was originally resolved from a Spotify track. Additionally, long-pressing a track in a Spotify playlist or Liked Songs screen in the Library section opens the override dialog directly.
+*P.S. This does not work if you have Qobuz enabled.*
 
 ### Q: How does Qobuz lossless playback work?
 
@@ -234,6 +242,10 @@ Not every track exists on Qobuz, and not every track exists at every quality tie
 - If you do log in, be aware this carries a small but nonzero risk
 
 **Bottom line:** No bans have been reported by Meld users to date. However, as with any third-party client, we cannot guarantee that platform policies won't change in the future.
+
+### Q: I have a niche request that is not fulfilled by the dev
+
+The app is only maintained by one dev and he also has a life. Just enjoy the free music and please don't DM/email the dev if you have any questions or enquiries — keep it in its designated channel in the server.
 
 ## Credits
 
