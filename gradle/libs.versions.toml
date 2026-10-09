@@ -4,7 +4,7 @@ browser = "1.10.0"
 robolectric = "4.16.1"
 androidxTestCore = "1.7.0"
 json = "20260522"
-kotlin = "2.4.10"
+kotlin = "2.4.20"
 compose = "1.12.0"
 lifecycle = "2.11.0"
 material3 = "1.5.0-alpha27"
@@ -111,6 +111,8 @@ protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", ve
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+androidKmpLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidGradlePlugin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
