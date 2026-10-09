@@ -142,3 +142,87 @@ jobs:
       - name: Report result
         if: always()
         run: 'echo "android-regression job outcome: ${{ job.status }}"'
+
+  ios-app:
+    name: iOS app (MeldIOS.app, simulator)
+    runs-on: macos-26
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: "21"
+          distribution: "temurin"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-37.0"
+
+      - name: Ensure Android 37 compatibility
+        run: |
+          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$sdk_root"
+          test -d "$sdk_root/platforms/android-37.0"
+          if [ ! -e "$sdk_root/platforms/android-37" ]; then
+            ln -s "$sdk_root/platforms/android-37.0" "$sdk_root/platforms/android-37"
+          fi
+          ls -ld "$sdk_root/platforms/android-37" "$sdk_root/platforms/android-37.0"
+
+      - name: Set Up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Select Xcode 26.4.1 (if available)
+        run: |
+          echo "Available Xcode installations:"
+          ls /Applications | grep -i xcode || true
+          if [ -d "/Applications/Xcode_26.4.1.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_26.4.1.app/Contents/Developer
+            echo "Selected Xcode 26.4.1"
+          else
+            echo "Xcode_26.4.1.app not found; keeping runner default"
+          fi
+          xcodebuild -version
+
+      - name: Install XcodeGen
+        run: |
+          brew install xcodegen
+          xcodegen --version
+
+      - name: Generate Xcode project
+        run: |
+          cd iosApp && xcodegen generate
+          ls -la
+
+      - name: List schemes
+        run: 'xcodebuild -list -project iosApp/MeldIOS.xcodeproj'
+
+      - name: Build MeldIOS.app (simulator, unsigned)
+        run: >
+          xcodebuild -project iosApp/MeldIOS.xcodeproj
+          -scheme MeldIOS -configuration Debug
+          -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath iosApp/build
+          CODE_SIGNING_ALLOWED=NO build
+
+      - name: Verify MeldShared export in generated header
+        run: |
+          header="$(find shared/build/xcode-frameworks -name MeldShared.h | head -n 1)"
+          test -n "$header"
+          echo "header: $header"
+          grep -n "mainViewController" "$header"
+
+      - name: Verify MeldIOS.app exists
+        run: |
+          ls -la iosApp/build/Build/Products/Debug-iphonesimulator/
+          test -d "iosApp/build/Build/Products/Debug-iphonesimulator/MeldIOS.app"
+
+      - name: Upload MeldIOS.app (simulator, unsigned — not an IPA)
+        uses: actions/upload-artifact@v4
+        with:
+          name: MeldIOS-simulator-app
+          path: iosApp/build/Build/Products/Debug-iphonesimulator/MeldIOS.app
+          if-no-files-found: error

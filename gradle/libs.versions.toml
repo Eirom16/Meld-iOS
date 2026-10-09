@@ -6,6 +6,7 @@ androidxTestCore = "1.7.0"
 json = "20260522"
 kotlin = "2.4.20"
 compose = "1.12.0"
+composeMultiplatform = "1.12.1"
 lifecycle = "2.11.0"
 material3 = "1.5.0-alpha27"
 appcompat = "1.8.0"
@@ -111,6 +112,7 @@ protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", ve
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 androidKmpLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidGradlePlugin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

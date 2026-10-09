@@ -1,3 +1,42 @@
+# FASE 01B — Resultados de implementación y verificación
+
+Fecha (UTC): 2026-10-09 · Rama `feat/ios-foundation` @ `34ba79a3` · Sin commits/push.
+
+## 01B.0 Evidencia heredada (Fase 01A VERIFIED)
+
+Run #4 (`actions/runs/37980259173`, commit `34ba79a3` = HEAD): iosSimulatorArm64 PASS, iosArm64 PASS, `:app:assembleFossDebug` PASS (KSP 2.3.11 + Hilt bajo Kotlin 2.4.20 confirmados), artifact del framework generado, Xcode 26.4.1 confirmado. Sin app iOS ejecutable hasta esta fase.
+
+## 01B.1 Comandos realmente ejecutados
+
+| # | Comando | Resultado |
+|---|---|---|
+| 1 | `git branch/HEAD/status/log` + lectura de REPORT/RESULTS/STATE + workflow con fixes CI del propietario | PASS. `feat/ios-foundation` @ `34ba79a3`, limpio; fixes 01A presentes (SDK 37.0, symlink, keystore) y preservados |
+| 2 | `git log --oneline -- AGENTS.md` (último: merge Resync v13.7.0) + instrucciones en contexto | PASS. Sin cambios de reglas que afecten a la fase |
+| 3 | Webfetch del patrón oficial compose-swiftui-integration + búsqueda de `embedAndSignAppleFrameworkForXcode` | PASS. Confirmados: `MainViewController()` + `ComposeUIViewController`, facade `Main_iosKt` (regla de export), Run Script antes de Compile Sources, `ENABLE_USER_SCRIPT_SANDBOXING=NO`, `CADisableMinimumFrameDurationOnPhone`, vars Xcode exportadas |
+| 4 | Ediciones catálogo (`composeMultiplatform=1.12.1` + plugin), root `apply false`, `shared/build.gradle.kts` (plugins + 4 deps compose), `MeldApp.kt`, `MainViewController.kt`, 4 ficheros `iosApp/`, job `ios-app`, `.gitignore` | PASS. `git diff --check` exit 0; `git status` muestra solo los ficheros previstos; `app/**` e `innertube/**` intactos |
+| 5 | `ruby -ryaml` sobre `ios-foundation.yml` y `project.yml` | PASS. Jobs `ios-framework, android-regression, ios-app`; targets `MeldIOS`, schemes `MeldIOS` |
+| 6 | `./gradlew :shared:tasks --all` | PASS (exit 0). Configuración con CMP 1.12.1 + Kotlin 2.4.20 resuelve para todo el proyecto |
+| 7 | `./gradlew :shared:compileKotlinIosSimulatorArm64` | PASS (BUILD SUCCESSFUL, 5 tareas). Prueba que CMP 1.12.1, el plugin compose-compiler bajo Kotlin 2.4.20, `MeldApp` (material3) y `MainViewController` (incl. `platform.UIKit`) compilan a klib iOS en Linux; knm `root_package` (entry point) y `package_com.meld.shared.ui` (pantalla) presentes |
+| 8 | Compilación Swift / `xcodebuild` / XcodeGen en local | NOT TESTED (sin toolchain Apple en Linux; imposible por diseño) → PENDING_CI (job `ios-app`) |
+| 9 | `:app:assembleFossDebug` local | NOT TESTED (sin Android SDK; VERIFIED en run #4, re-verificable en cada push vía Job B) |
+| 10 | Arranque en simulador / iPhone físico | NOT TESTED / fuera de alcance |
+
+## 01B.2 Errores encontrados
+
+Ninguno bloqueante. Decisiones preventivas aplicadas: fichero Kotlin del entry point sin `package` para que el facade sea exactamente `MainViewControllerKt` (una sola inferencia respaldada por el tutorial oficial, en vez de dos con package); grep del símbolo en `MeldShared.h` como paso CI que falla en voz alta; `if-no-files-found: error` en el artifact `.app`.
+
+## 01B.3 Archivos modificados y estado Git final
+
+Modificados: `.github/workflows/ios-foundation.yml`, `.gitignore`, `build.gradle.kts`, `gradle/libs.versions.toml`, `shared/build.gradle.kts` (+ docs). Creados: `MeldApp.kt`, `MainViewController.kt`, `iosApp/{project.yml,MeldIOS/MeldIOSApp.swift,MeldIOS/ContentView.swift,MeldIOS/Info.plist}`. `git diff --check` limpio. Sin commits/push: el propietario sube la rama y reporta el job `ios-app`.
+
+## 01B.4 Veredictos
+
+- CMP integrado en `shared` + `MeldApp()` + `MainViewController()`: PASS (klib iOS real).
+- `iosApp` + proyecto reproducible + integración Gradle/Xcode: sintaxis PASS, semántica PENDING_CI.
+- `.app` de simulador + regresión Android: PENDING_CI. Fase global: **IMPLEMENTED**.
+
+---
+
 # FASE 01A — Resultados de implementación y verificación
 
 Fecha (UTC): 2026-10-09 · Rama `feat/ios-foundation` (local, desde `main` @ `2ae37b1`) · Sin commits/push (restricción vigente).

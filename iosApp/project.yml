@@ -1,0 +1,58 @@
+# Fase 01B — Definición reproducible del proyecto Xcode (XcodeGen).
+# El `.xcodeproj` NO se versiona: se genera en CI con `xcodegen generate`.
+# La integración con Kotlin usa la vía directa oficial:
+# la fase "Compile Kotlin Framework" invoca :shared:embedAndSignAppleFrameworkForXcode,
+# que construye MeldShared para la CONFIGURATION/SDK activos y lo deja donde Xcode enlaza.
+name: MeldIOS
+
+options:
+  deploymentTarget:
+    iOS: "16.0"
+
+configs:
+  Debug: debug
+
+targets:
+  MeldIOS:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: MeldIOS
+        excludes:
+          - Info.plist
+    info:
+      path: MeldIOS/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.eirom16.meldios
+        PRODUCT_NAME: MeldIOS
+        # Sin equipo de firma en esta fase; el workflow además pasa CODE_SIGNING_ALLOWED=NO.
+        CODE_SIGNING_ALLOWED: NO
+        CODE_SIGN_IDENTITY: ""
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGNING_REQUIRED: NO
+        # La fase Gradle está sandboxeada por defecto desde Xcode 15: debe desactivarse
+        # o el daemon no puede lanzarse ni escribir el framework (fallos crípticos).
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        ONLY_ACTIVE_ARCH: YES
+        # Dónde deja el framework la tarea embedAndSignAppleFrameworkForXcode.
+        FRAMEWORK_SEARCH_PATHS: $(inherited) $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
+        OTHER_LDFLAGS: $(inherited) -framework MeldShared
+    preBuildScripts:
+      - name: Compile Kotlin Framework
+        basedOnDependencyAnalysis: false
+        script: |
+          if [ "YES" = "$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED" ]; then
+            echo "Skipping Gradle build (IDE already built the framework)"
+            exit 0
+          fi
+          "$SRCROOT/../gradlew" -p "$SRCROOT/.." :shared:embedAndSignAppleFrameworkForXcode -Dorg.gradle.jvmargs="-Xmx3g" -Pkotlin.daemon.jvm.options="-Xmx3g"
+
+schemes:
+  MeldIOS:
+    build:
+      targets:
+        MeldIOS: all
+    run:
+      config: Debug

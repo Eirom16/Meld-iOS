@@ -1,3 +1,58 @@
+# FASE 01B — Compose Multiplatform y primera aplicación iOS
+
+Fecha (UTC): 2026-10-09 · Rama `feat/ios-foundation` @ `34ba79a3` (commit verificado de la run #4 de 01A) · Estado: IMPLEMENTED, pendiente de CI.
+
+Nota previa: la Fase 01A quedó **VERIFIED** por GitHub Actions (run #4, commit `34ba79a3`): frameworks iosSimulatorArm64 + iosArm64 PASS, `:app:assembleFossDebug` PASS (KSP/Hilt incluidos), artifact `MeldShared-iosSimulatorArm64-framework` generado, Xcode 26.4.1 confirmado. Las correcciones CI del propietario (SDK `platforms;android-37.0` + symlink `android-37`, `debug.keystore` generado) se conservan intactas.
+
+## 01B.1 Resumen de arquitectura
+
+- `shared/` suma UI compartida: `MeldApp()` (commonMain) + `MainViewController()` (iosMain, `ComposeUIViewController`).
+- `iosApp/` es un host SwiftUI mínimo (sin lógica de negocio) que incrusta el `UIViewController` de Kotlin vía `UIViewControllerRepresentable`.
+- Integración Gradle↔Xcode por vía directa oficial: fase Run Script `Compile Kotlin Framework` → `:shared:embedAndSignAppleFrameworkForXcode` (estático: enlazado, nada que embeber).
+- Proyecto Xcode reproducible con XcodeGen (`iosApp/project.yml` versionado; el `.xcodeproj` se genera solo en CI).
+- CI: nuevo job `ios-app` (xcodebuild → `MeldIOS.app` de simulador sin firma + artifact). Sin IPA, sin certificados.
+
+## 01B.2 Versiones finales
+
+Kotlin **2.4.20** · AGP **9.3.1** · Gradle **9.7.0** · KSP **2.3.11** (sin cambios) · Compose Multiplatform **1.12.1** (nueva clave `composeMultiplatform`, separada del BOM Jetpack `compose = 1.12.0`) · Xcode **26.4.1** en `macos-26` · XcodeGen **latest de Homebrew** (versión registrada en el log del job) · iOS deployment target **16.0** · Bundle ID `com.eirom16.meldios`.
+
+## 01B.3 Archivos añadidos
+
+```text
+shared/src/commonMain/kotlin/com/meld/shared/ui/MeldApp.kt   # @Composable MeldApp(): tema oscuro musical,
+                                                             #  título, Greeting().greet(), nota KMP, botón-contador
+shared/src/iosMain/kotlin/com/meld/shared/MainViewController.kt  # fun MainViewController(): UIViewController
+                                                             #  (fichero SIN package a propósito → facade MainViewControllerKt)
+iosApp/MeldIOS/MeldIOSApp.swift      # @main App → WindowGroup(ContentView())
+iosApp/MeldIOS/ContentView.swift     # ComposeViewController (UIViewControllerRepresentable) → MainViewControllerKt.mainViewController()
+iosApp/MeldIOS/Info.plist            # CADisableMinimumFrameDurationOnPhone=true (obligatorio CMP) + launch keys mínimas
+iosApp/project.yml                   # definición XcodeGen: target MeldIOS, scheme compartido, settings sin firma,
+                                     #  FRAMEWORK_SEARCH_PATHS a xcode-frameworks, -framework MeldShared, sandbox de scripts OFF
+```
+
+Modificados: `gradle/libs.versions.toml` (+versión y plugin `composeMultiplatform`), `build.gradle.kts` (`apply false`), `shared/build.gradle.kts` (plugins compose + `compose.runtime/foundation/ui/material3` en commonMain), `.github/workflows/ios-foundation.yml` (job `ios-app`), `.gitignore` (`iosApp/*.xcodeproj`, `iosApp/build/`). No tocados: `app/**`, `innertube/**`, resto de workflows, versión de Meld.
+
+## 01B.4 Integración SwiftUI/Compose
+
+Patrón oficial (kotlinlang compose-swiftui-integration, jun-2026): `MainViewController(): UIViewController = ComposeUIViewController { MeldApp() }` en Kotlin; en Swift `UIViewControllerRepresentable` que lo instancia e ignora el safe area. Nombre Swift `MainViewControllerKt.mainViewController()` según la regla de export Kotlin/Native (facade = nombre de fichero + `Kt`; el fichero no declara package para que el nombre sea exacto y comprobable). El job CI verifica el símbolo con `grep mainViewController` sobre el `MeldShared.h` generado y falla en voz alta si difiere.
+
+## 01B.5 Integración Gradle/Xcode
+
+La fase corre antes de Compile Sources, sin análisis de dependencias (`basedOnDependencyAnalysis: false`), con guardia `OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED`, invocando gradlew con los heaps capados (`-Xmx3g`, sin tocar `gradle.properties`). Xcode aporta `CONFIGURATION/SDK_NAME/ARCHS/...`; Debug mapea al framework debug (sin configs custom, sin `KOTLIN_FRAMEWORK_BUILD_TYPE`). `ENABLE_USER_SCRIPT_SANDBOXING = NO` (obligatorio desde Xcode 15 o el daemon muere con errores crípticos) y enlazado vía `OTHER_LDFLAGS -framework MeldShared`.
+
+## 01B.6 Diseño de CI (job `ios-app`, `macos-26`, 45 min)
+
+JDK 21 → Android SDK 37.0 + symlink `android-37` (solución 01A reutilizada) → Gradle cache → Xcode 26.4.1 si disponible → `brew install xcodegen` (+`--version` registrado) → `xcodegen generate` → `xcodebuild -list` (esquemas) → `xcodebuild -scheme MeldIOS -configuration Debug -destination 'generic/platform=iOS Simulator' -derivedDataPath iosApp/build CODE_SIGNING_ALLOWED=NO build` → grep del export en `MeldShared.h` → `test -d …/MeldIOS.app` → artifact `MeldIOS-simulator-app` (`if-no-files-found: error`: prohibido subir vacío). Jobs `ios-framework` y `android-regression` intactos.
+
+## 01B.7 Riesgos y problemas restantes
+
+- Nombre del símbolo Swift (`MainViewControllerKt.mainViewController()`): convención documentada pero header no inspeccionable en Linux; el grep de CI es el árbitro (si falla, el log muestra los candidatos reales).
+- XcodeGen latest vía brew: reproducible por definición versionada + versión en log; si un futuro XcodeGen rompe la generación, fijar versión será el primer paso.
+- Arranque en simulador (`xcrun simctl launch`) y dispositivo físico: fuera de alcance / NOT TESTED.
+- Siguiente fase natural (01C): IPA sin firma para sideloading (`xcodebuild archive` + export sin firma o `Payload/` manual).
+
+---
+
 # FASE 01A — Fundación Kotlin Multiplatform y primera compilación iOS
 
 Fecha (UTC): 2026-10-09 · Rama `feat/ios-foundation` (creada local desde `main` @ `2ae37b1`, sin commit/push) · Estado: IMPLEMENTED, pendiente de CI.
