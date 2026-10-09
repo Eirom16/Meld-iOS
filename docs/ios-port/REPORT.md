@@ -1,3 +1,28 @@
+# FASE 01B-FIX01 — Corregir fallo de XcodeGen en GitHub Actions
+
+Fecha (UTC): 2026-10-09 · Rama `feat/ios-foundation` @ `c97f11ff` · Estado: IMPLEMENTED, PENDING_CI.
+
+Contexto: run #5 (`actions/runs/37983046004`): `ios-framework` PASS, `android-regression` PASS, `ios-app` FAIL en el paso `Generate Xcode project` con `XcodeGen 2.46.0 → Generating project... → Trace/BPT trap: 5` (exit 133), antes de xcodebuild.
+
+## FIX01.1 Diagnóstico
+
+- El crash es del binario (SIGTRAP = `fatalError` de Swift en tiempo de ejecución), no un error de validación del spec: XcodeGen valida los specs con mensajes limpios y exit ≠ 133.
+- Revisión completa de `iosApp/project.yml` sin hallazgos verificables: opciones válidas, rutas existentes (`MeldIOS/` con 2 Swift, `Info.plist` presente y excluido de sources), una sola config Debug (permitida), scheme mínimo válido. **Sin cambios en `project.yml`** (prohibidos los especulativos).
+- Evidencia externa: XcodeGen 2.46.0 (2026-07-16, bump a XcodeProj 9.14.0 + reordenación de targets) acumula reportes de rotura, incluido el issue "2.46.0 Is Broken on Homebrew" (bottles con checksums de 2.45.4). Hipótesis de trabajo: regresión de 2.46.0 en el runner `macos-26`/Xcode 26.4.1, no defecto de nuestro spec.
+- Validación previa del remedio en Linux: descarga del `xcodegen.zip` oficial 2.45.4 (4,3 MB) con `sha256sum` = `090ec294…bdbef` (coincide con el SHA oficial); layout confirmado (`xcodegen/bin/xcodegen`).
+
+## FIX01.2 Correcciones (solo job `ios-app`; los otros dos intactos)
+
+- Instalación brew → **XcodeGen 2.45.4 fijado**: `curl -fsSL` del release oficial + `shasum -a 256 -c` (falla en voz alta si difiere) + `unzip` + localización robusta del binario con `find` + `chmod +x` + `--version` registrado en el log + `GITHUB_PATH` (sin instalaciones globales).
+- Paso `Generate Xcode project` con diagnóstico: captura `PIPESTATUS`, `tee` a `xcodegen.log`, eco del exit code, `ls -la` y `exit` con el código real (sin ocultar errores).
+- Recogida de crash reports macOS (`~/Library/Logs/DiagnosticReports`, `/Library/...`, filtro `*xcodegen*`) + copia del log a `diagnostics/` y subida como artifact `xcodegen-diagnostics` con `if: failure()` (warn si vacío).
+
+## FIX01.3 Riesgo restante
+
+Si 2.45.4 también abortara, el artifact de diagnóstico (log + `.ips`) dará la causa exacta en una sola ronda; el siguiente sospechoso sería entonces el spec o el runner, no la versión.
+
+---
+
 # FASE 01B — Compose Multiplatform y primera aplicación iOS
 
 Fecha (UTC): 2026-10-09 · Rama `feat/ios-foundation` @ `34ba79a3` (commit verificado de la run #4 de 01A) · Estado: IMPLEMENTED, pendiente de CI.

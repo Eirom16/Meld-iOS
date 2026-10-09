@@ -187,15 +187,62 @@ jobs:
           fi
           xcodebuild -version
 
-      - name: Install XcodeGen
+      - name: Install XcodeGen 2.45.4 (pinned, checksum-verified)
+        # XcodeGen 2.46.0 (brew, run #5) aborta con Trace/BPT trap: 5 durante
+        # "Generating project...": se fija la última versión estable conocida,
+        # descargada del release oficial y verificada por SHA-256.
+        env:
+          XCODEGEN_VERSION: 2.45.4
+          XCODEGEN_SHA256: 090ec29491aad50aec10631bf6e62253fed733c50f3aab0f5ffc86bc170bdbef
         run: |
-          brew install xcodegen
-          xcodegen --version
+          set -euo pipefail
+          work="$RUNNER_TEMP/xcodegen"
+          mkdir -p "$work"
+          cd "$work"
+          curl -fsSL -o xcodegen.zip "https://github.com/yonaskolb/XcodeGen/releases/download/${XCODEGEN_VERSION}/xcodegen.zip"
+          echo "${XCODEGEN_SHA256}  xcodegen.zip" | shasum -a 256 -c -
+          rm -rf xcodegen-dist && mkdir -p xcodegen-dist
+          unzip -o -q xcodegen.zip -d xcodegen-dist
+          bin_path="$(find xcodegen-dist -name xcodegen -type f | head -n 1)"
+          test -n "$bin_path"
+          chmod +x "$bin_path"
+          "$bin_path" --version
+          echo "xcodegen binary: $bin_path"
+          bin_dir="$(cd "$(dirname "$bin_path")" && pwd)"
+          echo "$bin_dir" >> "$GITHUB_PATH"
 
       - name: Generate Xcode project
         run: |
-          cd iosApp && xcodegen generate
+          cd iosApp
+          set +e
+          xcodegen generate 2>&1 | tee "$GITHUB_WORKSPACE/xcodegen.log"
+          code="${PIPESTATUS[0]}"
+          echo "xcodegen exit code: $code"
           ls -la
+          exit "$code"
+
+      - name: Collect XcodeGen crash reports
+        if: failure()
+        run: |
+          mkdir -p diagnostics
+          cp "$GITHUB_WORKSPACE/xcodegen.log" diagnostics/ 2>/dev/null || true
+          echo "--- DiagnosticReports (Apple) ---"
+          ls -lat ~/Library/Logs/DiagnosticReports/ 2>/dev/null | head -n 20 || true
+          sleep 5
+          while IFS= read -r report; do
+            echo "copying: $report"
+            cp "$report" diagnostics/ || true
+          done < <(find ~/Library/Logs/DiagnosticReports /Library/Logs/DiagnosticReports -maxdepth 1 -iname "*xcodegen*" -type f 2>/dev/null | head -n 10)
+          echo "--- diagnostics content ---"
+          ls -la diagnostics/
+
+      - name: Upload XcodeGen diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodegen-diagnostics
+          path: diagnostics/
+          if-no-files-found: warn
 
       - name: List schemes
         run: 'xcodebuild -list -project iosApp/MeldIOS.xcodeproj'

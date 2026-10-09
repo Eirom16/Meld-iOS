@@ -1,3 +1,30 @@
+# FASE 01B-FIX01 — Resultados de corrección
+
+Fecha (UTC): 2026-10-09 · Rama `feat/ios-foundation` @ `c97f11ff` · Sin commits/push.
+
+## FIX01.1 Comandos ejecutados
+
+| # | Comando | Resultado |
+|---|---|---|
+| 1 | Lectura `AGENTS.md` (en contexto), REPORT/RESULTS/STATE, `ios-foundation.yml`, `project.yml`, `ls iosApp/MeldIOS/` | PASS. Arranque @ `c97f11ff`; único `M` preexistente: `.gitignore` (append propio de 01B no incluido en el commit del propietario — se conserva, no es conflicto) |
+| 2 | Revisión de `project.yml` (opciones, rutas, configs, scheme) | PASS sin cambios. Todo verificable es válido; ningún error que explique un SIGTRAP |
+| 3 | Websearch XcodeGen 2.46.0 (changelog + issues #1445/#1630/#1637) | PASS. 2.46.0 trae XcodeProj 9.14.0 y cambios de ordenación; existe issue de rotura en brew; el patrón "Generating project... → trace trap" tiene precedente como bug del binario (`fatalError`), no del spec |
+| 4 | `curl` del `xcodegen.zip` 2.45.4 a `/tmp/opencode` + `sha256sum` + `unzip -l` | PASS. 4.319.508 bytes, SHA `090ec294…bdbef` idéntico al oficial, binario en `xcodegen/bin/xcodegen` (limpiado tras comprobar) |
+| 5 | Edición del workflow (install fijado + generate con diagnóstico + collect/upload con `if: failure()`) | PASS. `bash -n` OK en los 9 bloques `run:` del job `ios-app`; 3 jobs intactos (`12/9/15` steps) |
+| 6 | `ruby -ryaml` del workflow + `git diff --check` | PASS. Jobs `ios-framework, android-regression, ios-app`; diff limpio |
+| 7 | Nueva ejecución en CI | PENDING_CI (requiere subida de la rama por el propietario) |
+
+## FIX01.2 Archivos modificados
+
+- MODIFICADO: `.github/workflows/ios-foundation.yml` (+55/−4: pasos de XcodeGen y diagnóstico en `ios-app`; resto idéntico).
+- Preexistente sin commitear: `.gitignore` (append 01B). Sin tocar: `app/`, `innertube/`, Kotlin, Swift, `project.yml`, versiones, docs ajenas.
+
+## FIX01.3 Veredicto
+
+Fase 01B sigue **IMPLEMENTED / PENDING_CI**: el bloqueo pasa de "crash sin diagnóstico" a "versión fijada y verificada + diagnóstico automático en caso de fallo".
+
+---
+
 # FASE 01B — Resultados de implementación y verificación
 
 Fecha (UTC): 2026-10-09 · Rama `feat/ios-foundation` @ `34ba79a3` · Sin commits/push.

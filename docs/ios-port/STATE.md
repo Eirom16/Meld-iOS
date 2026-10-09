@@ -1,6 +1,8 @@
 # STATE.md — Estado de continuidad del port Meld → iOS
 
-Última actualización (UTC): 2026-10-09 · Rama `feat/ios-foundation` @ `34ba79a3` (sin commit/push en esta fase) · `git diff --check` limpio.
+Última actualización (UTC): 2026-10-09 · Rama `feat/ios-foundation` @ `c97f11ff` (sin commit/push en esta fase) · `git diff --check` limpio.
+
+> 01B-FIX01 (2026-10-09): run #5 con `ios-app` FAIL (XcodeGen 2.46.0 SIGTRAP en "Generating project..."). Corregido con XcodeGen **2.45.4 fijado y verificado por SHA-256** + diagnóstico automático (log + crash reports macOS + artifact en `failure()`). `project.yml` sin errores verificables → sin cambios. 01B sigue IMPLEMENTED / PENDING_CI.
 
 ## 1. Objetivo general
 
@@ -34,7 +36,7 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 
 ## 5. Bloqueos abiertos
 
-- CI pendiente: subir `feat/ios-foundation` y reportar el job `ios-app` (y re-verde de los otros dos). Sin eso no hay VERIFIED.
+- CI pendiente: subir `feat/ios-foundation` y reportar el job `ios-app` (y re-verde de los otros dos). FIX01 aplicado: si `xcodegen-diagnostics` aparece, revisar log + `.ips` antes de tocar el spec.
 - Incógnita menor: nombre exacto del símbolo Swift si la regla de facade difiriera (el grep de CI lo dictamina con candidatos en el log).
 - XcodeGen latest: si una versión futura rompe `project.yml`, fijar versión.
 - B2 InnerTubeX · B3 OkHttp · B4 `SpotifyAuth` JVM-only · B6 migraciones Room (fuera de alcance hasta Fase 02).
