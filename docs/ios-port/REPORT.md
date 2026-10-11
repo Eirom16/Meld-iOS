@@ -50,9 +50,13 @@ Nuevos modelos en `shared/src/commonMain/.../music/Models.kt` (solo stdlib, inmu
 
 `commonTest/.../music/ModelsTest.kt` (9 tests: formato 0:00/1:35/59:59/1:02:01/`--:--`, `artistNames`, delegación, inmutabilidad) + `RepositoryTest.kt` (9 tests: snapshot demo, detalle, IDs desconocidos → null/vacío, relaciones álbum/artista/playlist incl. skip de ID inexistente, repositorio vacío, repositorio en fallo → `DemoCatalogException` en las 6 llamadas). Local: **18/18 PASS** (`:shared:jvmTest`, verificado en esta sesión). Workflow: 4 jobs (`ios-framework`, `shared-tests` nuevo en ubuntu con `:shared:jvmTest` + upload de reports en fallo, `ios-app`, `ios-device-ipa`); validaciones 01C/01D (13 checks incl. plist booleano) intactas.
 
-## 02A.7 Veredicto ciclo 1
+## 02A.7 Veredicto ciclo 1 (run #17 `actions/runs/38178379518`, commit `bd0e97a4`) — 02A CI VERIFIED
 
-PENDING_CI (registrar run id y resultado tras el push). Cupo: 1/3 al hacer push. Criterios de éxito pendientes de CI: framework sim+device, `shared-tests` verde, app simulador, IPA 13 checks con `CADisableMinimumFrameDurationOnPhone=true`. En iPhone: DEVICE RETEST PENDING (el propietario prueba el nuevo IPA; la UI musical solo se declara verificada en dispositivo tras su prueba).
+- Los 4 jobs SUCCESS: `ios-framework`, `shared-tests` (nuevo, `:shared:jvmTest` verde en ubuntu), `ios-app` (incl. check de lectura del plist en simulador), `ios-device-ipa` (13/13 validaciones PASS).
+- Informe CI `device-ipa-validation.txt`: `PASS: CADisableMinimumFrameDurationOnPhone boolean true` intacto, resto intacto (`platform IOS`, minos 16.0, sdk 26.4, arm64 sin x86_64, bundle OK, MeldShared estático, sin firma, sin junk).
+- IPA: `MeldIOS-unsigned-device.ipa`, **14.102.066 bytes**, SHA-256 `9c49d72ffa66c670a8ad990ecf8875769c9fd1b610095a70864505796c1cbb06` (crece ~1 MB por el catálogo/UI nuevos; esperado).
+- Cupo consumido: 1/3. **Estado: 02A — CI VERIFIED / DEVICE RETEST PENDING** (la UI musical solo se declara verificada en iPhone cuando el propietario firme, instale y pruebe el nuevo IPA).
+- Registro documental del veredicto en ciclo 2/3 (solo docs, sin cambios funcionales).
 
 ---
 

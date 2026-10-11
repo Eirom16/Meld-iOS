@@ -25,9 +25,18 @@ Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `427e4140` + cambios 02A
 - ACTUALIZADO: `docs/ios-port/{REPORT,RESULTS,STATE}.md`.
 - Sin tocar: `app/**`, `innertube/**` (referencia histórica en disco), `iosApp/**` (plist 01D intacto), versiones Kotlin/Compose/Gradle/XcodeGen, resto de workflows.
 
-## 02A.3 Veredicto ciclo 1
+## 02A.3 Veredicto ciclo 1 (run #17 `actions/runs/38178379518`) — ÉXITO
 
-PENDING_CI. Cierre 01D registrado: **DEVICE VERIFIED (manual smoke test)** — IPA 01D-FIX01 firmado con 3uTools, arranque/renderizado/interacción (6 taps) OK en iPhone 11 Pro del propietario; alcance limitado a arranque+render+interacción inicial.
+| Criterio obligatorio | Resultado |
+|---|---|
+| 1. Config iOS-only (sin Android SDK en CI) | SUCCESS (3 jobs macOS sin pasos SDK; `shared-tests` en ubuntu) |
+| 2. `ios-framework` PASS (klibs sim+device) | SUCCESS |
+| 3. `shared-tests` PASS (`:shared:jvmTest`) | SUCCESS (18/18, coincide con local) |
+| 4. `ios-app` PASS (simulador + plist) | SUCCESS |
+| 5. `ios-device-ipa` PASS (13/13) | SUCCESS (`CADisableMinimumFrameDurationOnPhone boolean true` intacto) |
+| 6. IPA descargable | `MeldIOS-unsigned-device-ipa` (14.102.066 bytes, SHA-256 `9c49d72f…96c1cbb06`) |
+
+Cupo consumido: 1/3. **02A: CI VERIFIED / DEVICE RETEST PENDING.** UI musical en iPhone: NOT TESTED (la prueba la realiza el propietario).
 
 ---
 

@@ -1,8 +1,8 @@
 # STATE.md — Estado de continuidad del port Meld → iOS
 
-Última actualización (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `427e4140` + 02A IMPLEMENTED, PENDING_CI (ciclo CI 1/3 al hacer push) · `git diff --check` limpio.
+Última actualización (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `bd0e97a4` + veredicto 02A documental (ciclo CI 2/3 al hacer push) · `git diff --check` limpio.
 
-> 02A IMPLEMENTED / PENDING_CI (2026-10-11, ciclo CI 1/3 al hacer push): fundación iOS-only (`:shared` sin Android ni iosX64; settings solo `:shared`; job `android-regression` sustituido por `shared-tests` con `:shared:jvmTest`; SDK Android eliminado del pipeline) + dominio musical (`Track/Album/Artist/Playlist`, `MusicCatalogRepository`, demo en memoria) + UI de catálogo navegable (4 pestañas + 4 detalles + estados loading/vacío/error, sin reproductor falso) + 18/18 tests PASS en local (`ModelsTest` 9 + `RepositoryTest` 9). CI pendiente.
+> 02A — CI VERIFIED / DEVICE RETEST PENDING (2026-10-11, run #17 `38178379518`, commit `bd0e97a4`, ciclo CI 1/3): 4 jobs SUCCESS (`ios-framework`, `shared-tests` con 18/18 tests, `ios-app`, `ios-device-ipa` con 13/13 validaciones incl. plist booleano). IPA `MeldIOS-unsigned-device.ipa` (14.102.066 bytes, SHA-256 `9c49d72f…96c1cbb06`). UI musical en iPhone: NOT TESTED (prueba del propietario pendiente).
 
 > 01D — DEVICE VERIFIED (manual smoke test, 2026-10-11): el propietario firmó el IPA 01D-FIX01 con 3uTools, lo instaló en iPhone 11 Pro y la app arrancó y renderizó (texto Kotlin visible, Compose OK, contador con 6 taps, sin el cierre inmediato anterior). Alcance: arranque + renderizado + interacción inicial. No se afirman funciones futuras.
 
@@ -35,7 +35,7 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 | 01B — CMP + host iOS | `MeldApp()`, `MainViewController()`, `iosApp/`, job `ios-app` → `MeldIOS.app` | **VERIFIED** 2026-10-11 (run #11: 3 jobs SUCCESS, `BUILD SUCCEEDED` arm64 simulador, `MeldIOS.app` + header + artifacts verificados) |
 | 01C — Generación de IPA | Archive iphoneos + ZIP `Payload/` sin firma, artifact `.ipa` | **VERIFIED** 2026-10-11 (run #14: 4 jobs SUCCESS, 12/12 checks, IPA 13.054.764 bytes) |
 | 01D — Arranque en iPhone físico | Crash SIGABRT (`PlistSanityCheck`): IPA sin `CADisableMinimumFrameDurationOnPhone` | **DEVICE VERIFIED** 2026-10-11 (smoke test manual del propietario: IPA 01D-FIX01 firmado con 3uTools, arranque + render + 6 taps OK en iPhone 11 Pro; alcance limitado) |
-| 02A — Fundación iOS-only + catálogo musical | Settings solo `:shared`; `MusicCatalogRepository` + demo + UI navegable + 18 tests | **IMPLEMENTED / PENDING_CI** (ciclo 1/3 al hacer push; 18/18 PASS en local) |
+| 02A — Fundación iOS-only + catálogo musical | Settings solo `:shared`; `MusicCatalogRepository` + demo + UI navegable + 18 tests | **CI VERIFIED / DEVICE RETEST PENDING** (run #17: 4 jobs SUCCESS, 13/13 checks, IPA 14.102.066 bytes) |
 | 02B+ — Transporte real, modelos remotos, player AVFoundation | — | **NOT STARTED** |
 
 ## 4. Últimas fases concluidas
@@ -57,7 +57,7 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 
 ## 6. Próximo objetivo
 
-**Fase 02A — CI VERIFIED / DEVICE RETEST PENDING**: push de este ciclo y 4 jobs verdes en GHA (cupo 1/3). Tras el verde, el propietario firma el nuevo IPA, lo instala y prueba la UI del catálogo en su iPhone (la UI musical NO se declara verificada en dispositivo hasta entonces).
+**Fase 02A — CI VERIFIED / DEVICE RETEST PENDING** (run #17 verde en ciclo 1/3; registro documental en ciclo 2/3): el propietario firma el nuevo IPA, lo instala y prueba la UI del catálogo en su iPhone (la UI musical NO se declara verificada en dispositivo hasta entonces).
 
 **Fase 02B+** (NOT STARTED, requiere autorización nueva): transporte real (Ktor/Darwin, InnerTubeX pendiente B2), autenticación, persistencia, reproductor AVFoundation. No iniciar en esta fase.
 
