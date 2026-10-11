@@ -24,6 +24,14 @@ Contexto: 01C VERIFIED (IPA sin firma generado). El propietario firmó con 3uToo
 - Workflow (`.github/workflows/ios-foundation.yml`): job `ios-device-ipa` pasa de 12 a 13 comprobaciones (nuevo check `plistlib`: clave presente, `type is bool and is True`; rechaza cadena `"true"`, número y ausencia; el job falla si no cumple). Job `ios-app`: nuevo paso de solo lectura `Verify Compose plist key (simulator)` sobre el `.app` ya compilado (sin alterar su compilación). Las 12 validaciones previas se conservan intactas.
 - Veredicto y artifact nuevo: PENDING_CI (registrar run id y resultado abajo tras la ejecución). Cupo: 0/3 consumido hasta el push.
 
+## FIX01.4 Veredicto ciclo 1 (run #16 `actions/runs/38175702380`, commit `2a53af13`) — 01D-FIX01 CI VERIFIED
+
+- Los 4 jobs SUCCESS: `ios-framework`, `android-regression`, `ios-app` (incl. nuevo paso `Verify Compose plist key (simulator)`), `ios-device-ipa` (13/13 validaciones PASS).
+- Informe CI `device-ipa-validation.txt`: `PASS: CADisableMinimumFrameDurationOnPhone boolean true` (línea `CADisableMinimumFrameDurationOnPhone is boolean true`), resto intacto (`platform IOS`, minos 16.0, sdk 26.4, arm64 sin x86_64, bundle OK, MeldShared estático, sin firma, sin junk).
+- Verificación independiente en Linux del artifact descargado: las 4 claves presentes con tipos correctos (`CADisableMinimumFrameDurationOnPhone True [bool]`, `LSRequiresIPhoneOS True [bool]`, `UILaunchScreen {} [dict]`, `UISupportedInterfaceOrientations ['UIInterfaceOrientationPortrait'] [list]`), `CFBundleIdentifier=com.eirom16.meldios`, `MinimumOSVersion=16.0`.
+- IPA: `MeldIOS-unsigned-device.ipa`, **13.054.877 bytes**, SHA-256 `0ab228f956db868f8d9577bd98eb81d1e9eefc5000e883346d8b32dd587ac5cf`.
+- Cupo consumido: 1/3. **Estado: 01D-FIX01 — CI VERIFIED / DEVICE RETEST PENDING** (el crash solo se declara resuelto cuando el propietario firme, instale y arranque en su iPhone).
+
 ---
 
 # FASE 01C — Primer IPA para iPhone físico (autonomía GitHub, máx. 3 ciclos CI)

@@ -22,9 +22,19 @@ Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `57d08cda` + fix workflo
 - Sin tocar: `Info.plist` fuente (ya correcto), `shared/`, `app/`, `innertube/`, versiones, resto de workflows.
 - Preexistente sin commitear: `.gitignore` (append 01B; se conserva fuera del commit).
 
-## FIX01.3 Veredicto ciclo 1
+## FIX01.3 Veredicto ciclo 1 (run #16 `actions/runs/38175702380`, commit `2a53af13`) — ÉXITO
 
-PENDING_CI (este push). Criterios de cierre: 4 jobs SUCCESS + IPA nuevo con `CADisableMinimumFrameDurationOnPhone` booleano `true` verificado en CI + artifact descargable. La verificación en iPhone queda en manos del propietario (firma + instalación + arranque). Cupo consumido: 1/3.
+| Criterio obligatorio | Resultado |
+|---|---|
+| 1. `ios-framework` PASS | SUCCESS |
+| 2. `android-regression` PASS | SUCCESS |
+| 3. `ios-app` PASS (con nuevo check de lectura del plist) | SUCCESS |
+| 4. `ios-device-ipa` PASS (13/13 validaciones) | SUCCESS |
+| 5. `CADisableMinimumFrameDurationOnPhone` booleano `true` en el IPA | PASS en CI + verificado en local (`True [bool]`) |
+| 6. Resto de validaciones intactas | 12/12 previas PASS (arm64, `platform IOS`, minos 16.0, bundle, estático, sin firma, sin junk) |
+| 7. IPA descargable | `MeldIOS-unsigned-device-ipa` (13.054.877 bytes, SHA-256 `0ab228f9…c5000e…dd587a`) |
+
+Cupo consumido: 1/3. **01D-FIX01: CI VERIFIED / DEVICE RETEST PENDING.** Arranque en iPhone: NOT TESTED (lo realiza el propietario).
 
 ---
 
