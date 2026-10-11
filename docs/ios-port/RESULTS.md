@@ -1,3 +1,33 @@
+# FASE 01D-FIX01 — Declarar claves Info.plist en XcodeGen (ciclo 1/3)
+
+Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `57d08cda` + fix workflow/project · Autonomía GitHub activa (commit+push a la rama, 1 ciclo CI consumido de 3).
+
+## FIX01.1 Comandos ejecutados
+
+| # | Comando | Resultado |
+|---|---|---|
+| 1 | Lectura `AGENTS.md` + `docs/ios-port/{REPORT,RESULTS,STATE}.md` + workflow + `project.yml` + `Info.plist` + `git branch/HEAD/status` + `gh run view/list` (run #15 `38172944050`) | PASS. HEAD `57d08cda` en sync con remoto; run #15 con 4 jobs SUCCESS; único `M` preexistente: `.gitignore` (se conserva fuera del commit) |
+| 2 | `gh run download` del artifact `MeldIOS-unsigned-device-ipa` + `plistlib` sobre `Payload/MeldIOS.app/Info.plist` + `plistlib` sobre la fuente | PASS con hallazgo: fuente con las 4 claves (bool `true`); IPA original sin las 4 (solo defaults + `com.eirom16.meldios`/`MeldIOS`/`16.0` correctos). Deficiencia de generación confirmada |
+| 3 | Inspección `FileWriter.swift` + `InfoPlistGenerator.swift` + `Plist.swift` + `Target.swift` de XcodeGen 2.45.4 (vía raw GitHub) + docs `ProjectSpec.md` (sección Plist) + reproducción independiente | PASS. Causa confirmada: `writePlists()` reescribe el fichero con defaults + `info.properties`; sin `properties`, las claves a mano se pierden en cada `generate` |
+| 4 | Edición `iosApp/project.yml` (`info.properties` con las 4 claves) + workflow (check 13 en `ios-device-ipa` + paso de lectura en `ios-app`) | PASS. Sin cambios de versiones, arquitectura, configs ni resto de jobs |
+| 5 | `uv run --with pyyaml`: parse YAML de ambos ficheros + tipos (`true`=bool, `{}`=dict, array) + simulación defaults+properties → `<true/>` + casos negativos del check (cadena/número/ausente/`false` rechazados, `true` aceptado) + `bash -n` de los pasos editados + `git diff --check` | PASS. 4 jobs en workflow; configs Debug+Release intactas; diff limpio |
+| 6 | Actualización `REPORT/RESULTS/STATE.md` | PASS, mismo commit (evita ciclos CI extra) |
+| 7 | Commit + push a `feat/ios-foundation` (este ciclo) | PENDING → registrar run id y veredicto abajo tras la ejecución |
+
+## FIX01.2 Archivos modificados (ciclo 1)
+
+- MODIFICADO: `iosApp/project.yml` (solo `info.properties` + comentario FIX01D).
+- MODIFICADO: `.github/workflows/ios-foundation.yml` (check 13 con `python3 -c` + `plistlib` en `ios-device-ipa`; paso `Verify Compose plist key (simulator)` en `ios-app`).
+- ACTUALIZADO: `docs/ios-port/{REPORT,RESULTS,STATE}.md`.
+- Sin tocar: `Info.plist` fuente (ya correcto), `shared/`, `app/`, `innertube/`, versiones, resto de workflows.
+- Preexistente sin commitear: `.gitignore` (append 01B; se conserva fuera del commit).
+
+## FIX01.3 Veredicto ciclo 1
+
+PENDING_CI (este push). Criterios de cierre: 4 jobs SUCCESS + IPA nuevo con `CADisableMinimumFrameDurationOnPhone` booleano `true` verificado en CI + artifact descargable. La verificación en iPhone queda en manos del propietario (firma + instalación + arranque). Cupo consumido: 1/3.
+
+---
+
 # FASE 01C — Implementación del job de IPA (ciclo 1/3)
 
 Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `9e0e511b` + commit 01C · Autonomía GitHub activa (commit+push a la rama, 1 ciclo CI consumido de 3).

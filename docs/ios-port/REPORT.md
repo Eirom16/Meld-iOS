@@ -1,3 +1,31 @@
+# FASE 01D-FIX01 — Crash de arranque por Info.plist reescrito (autonomía GitHub, máx. 3 ciclos CI)
+
+Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `57d08cda` (run #15 `38172944050` con los 4 jobs SUCCESS como base) · Estado: IMPLEMENTED, PENDING_CI, ciclo CI 1/3.
+
+Contexto: 01C VERIFIED (IPA sin firma generado). El propietario firmó con 3uTools, instaló en iPhone 11 Pro (iOS 27.0.1) y la app cerró al arrancar (pantalla negra breve). Informe `MeldIOS-2026-10-11-170452.ips`: EXC_CRASH / SIGABRT, `IllegalStateException` en `androidx.compose.ui.uikit.PlistSanityCheck.performIfNeeded`. En la copia firmada falta `CADisableMinimumFrameDurationOnPhone` (bundle ID con sufijo `com.eirom16.meldios.TT9HY6U979`, sin atribuir al proyecto).
+
+## FIX01.1 Comparación fuente vs IPA original (run #15, evidencia propia)
+
+- Fuente `iosApp/MeldIOS/Info.plist`: contiene las 4 claves (`CADisableMinimumFrameDurationOnPhone=true` booleano + `LSRequiresIPhoneOS`, `UILaunchScreen`, `UISupportedInterfaceOrientations`). Verificado con `plistlib` (`type is bool and is True`).
+- IPA original descargado con `gh` (artifact `MeldIOS-unsigned-device-ipa`, 13.054.764 bytes): `Payload/MeldIOS.app/Info.plist` carece de **las 4** claves de la fuente; solo contiene defaults (`CFBundle*`, `DT*`, `MinimumOSVersion 16.0`, `UIDeviceFamily`, `UIRequiredDeviceCapabilities`), con `CFBundleIdentifier=com.eirom16.meldios` y `CFBundleExecutable=MeldIOS` correctos.
+- Conclusión: deficiencia confirmada en generación/empaquetado (el IPA original ya sale sin la clave). No se atribuye a 3uTools: pendiente comparar contra el firmado solo como validación posterior.
+
+## FIX01.2 Causa confirmada (código fuente de XcodeGen 2.45.4)
+
+- `Sources/XcodeGenKit/FileWriter.swift` (`writePlists()`): si el target define `info`, XcodeGen **reescribe el fichero en cada `generate`** con `generateProperties() + info.properties` (solo defaults + propiedades declaradas). Nuestro spec declaraba `info.path` sin `properties` → cada `xcodegen generate` en CI borraba silenciosamente las 4 claves escritas a mano.
+- `Sources/XcodeGenKit/InfoPlistGenerator.swift`: los defaults generados son exactamente las claves vistas en el IPA (coincidencia forense total).
+- Reproducción independiente publicada (mismo patrón: claves a mano que desaparecen tras regenerar).
+- `INFOPLIST_FILE` sí se aplica desde `info.path` (el bundle ID resuelve bien); el problema era el **contenido** del fichero, no la ruta. No hacen falta settings `INFOPLIST_FILE`/`GENERATE_INFOPLIST_FILE` adicionales.
+
+## FIX01.3 Corrección ciclo 1 (mínima, sin redundancias)
+
+- `iosApp/project.yml`: bloque `info.properties` con las 4 claves de la fuente (`CADisableMinimumFrameDurationOnPhone: true` sin comillas = booleano YAML → `<true/>`; `LSRequiresIPhoneOS: true`; `UILaunchScreen: {}`; `UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]`). Sintaxis `Plist{path, properties}` válida en 2.45.4; simulación local defaults+properties → `plistlib` confirma booleano `true`.
+- Sin cambios de versiones (Kotlin/Compose/Gradle/XcodeGen), arquitectura, `shared/`, `app/`, `innertube/`, ni configs (Debug+Release intactas). Sin desactivar el check de Compose.
+- Workflow (`.github/workflows/ios-foundation.yml`): job `ios-device-ipa` pasa de 12 a 13 comprobaciones (nuevo check `plistlib`: clave presente, `type is bool and is True`; rechaza cadena `"true"`, número y ausencia; el job falla si no cumple). Job `ios-app`: nuevo paso de solo lectura `Verify Compose plist key (simulator)` sobre el `.app` ya compilado (sin alterar su compilación). Las 12 validaciones previas se conservan intactas.
+- Veredicto y artifact nuevo: PENDING_CI (registrar run id y resultado abajo tras la ejecución). Cupo: 0/3 consumido hasta el push.
+
+---
+
 # FASE 01C — Primer IPA para iPhone físico (autonomía GitHub, máx. 3 ciclos CI)
 
 Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `9e0e511b` (run #12 `38169795066` con los 3 jobs SUCCESS como base) · Estado: IMPLEMENTED, PENDING_CI, ciclo CI 1/3.

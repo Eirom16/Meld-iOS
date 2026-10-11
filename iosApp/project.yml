@@ -27,6 +27,16 @@ targets:
           - Info.plist
     info:
       path: MeldIOS/Info.plist
+      properties:
+        # FIX01D: XcodeGen REESCRIBE este fichero en cada `generate`
+        # (FileWriter.writePlists en 2.45.4: defaults + properties).
+        # Toda clave escrita a mano que no se declare aqui desaparece del
+        # .app final y Compose aborta al arrancar (PlistSanityCheck -> SIGABRT).
+        # `true` sin comillas = booleano YAML -> <true/> en el plist final.
+        CADisableMinimumFrameDurationOnPhone: true
+        LSRequiresIPhoneOS: true
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.eirom16.meldios

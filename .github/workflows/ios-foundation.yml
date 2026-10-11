@@ -350,6 +350,21 @@ jobs:
           ls -la iosApp/build/Build/Products/Debug-iphonesimulator/
           test -d "iosApp/build/Build/Products/Debug-iphonesimulator/MeldIOS.app"
 
+      - name: Verify Compose plist key (simulator)
+        # FIX01D: inspeccion de solo lectura del .app ya compilado (no altera
+        # su compilacion). Misma condicion que el job de IPA: la clave debe
+        # ser booleano true o el job falla.
+        run: |
+          set -euo pipefail
+          app="iosApp/build/Build/Products/Debug-iphonesimulator/MeldIOS.app"
+          test -f "$app/Info.plist"
+          python3 -c 'import plistlib, sys
+          with open(sys.argv[1], "rb") as f:
+              plist = plistlib.load(f)
+          value = plist.get("CADisableMinimumFrameDurationOnPhone")
+          assert type(value) is bool and value is True, "CADisableMinimumFrameDurationOnPhone must be boolean true"
+          print("simulator Info.plist: CADisableMinimumFrameDurationOnPhone is boolean true")' "$app/Info.plist"
+
       - name: Upload MeldIOS.app (simulator, unsigned — not an IPA)
         uses: actions/upload-artifact@v4
         with:
@@ -502,8 +517,8 @@ jobs:
           test -s "$out"
 
       - name: Validate unsigned device IPA
-        # Las 12 comprobaciones de la Fase 01C. Cualquier fallo critico
-        # aborta el job (exit 1): nunca se publica un IPA invalido.
+        # Las 13 comprobaciones de las Fases 01C+01D-FIX01. Cualquier fallo
+        # critico aborta el job (exit 1): nunca se publica un IPA invalido.
         run: |
           set -euo pipefail
           ipa="iosApp/build/device/MeldIOS-unsigned-device.ipa"
@@ -565,6 +580,24 @@ jobs:
           [ "$minos" = "16.0" ] || fail "minos=$minos"
           pass "minimum iOS 16.0"
           [ -f "$app/Info.plist" ] || fail "Info.plist missing in app"
+          # FIX01D: la clave Compose debe ser booleano true (ni cadena "true"
+          # ni numero). XcodeGen reescribia el plist sin ella (run #15) y la
+          # app abortaba al arrancar (PlistSanityCheck -> SIGABRT).
+          set +e
+          plist_out="$(python3 -c 'import plistlib, sys
+          with open(sys.argv[1], "rb") as f:
+              plist = plistlib.load(f)
+          value = plist.get("CADisableMinimumFrameDurationOnPhone")
+          assert type(value) is bool and value is True, "CADisableMinimumFrameDurationOnPhone must be boolean true"
+          print("CADisableMinimumFrameDurationOnPhone is boolean true")' "$app/Info.plist")"
+          plist_code="$?"
+          set -e
+          echo "$plist_out" | tee -a "$report"
+          if [ "$plist_code" -ne 0 ]; then
+            fail "CADisableMinimumFrameDurationOnPhone missing or not boolean true"
+          else
+            pass "CADisableMinimumFrameDurationOnPhone boolean true"
+          fi
           if otool -L "$exec" | grep -qi "meldshared"; then
             fail "MeldShared linked dynamically (expected static)"
           else
