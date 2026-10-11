@@ -31,6 +31,14 @@ Contexto: 01B VERIFIED (run #11 `38168783902`): `MeldIOS.app` de simulador compi
 - Check 12 FAIL espurio: el `grep` sobre `unzip -l` casaba su propia cabecera `Archive: iosApp/build/...` (patrón `/build/`), no contenido real.
 - Fix ciclo 2 (este push): comprobación 12 usa `unzip -Z1` (solo nombres de fichero, sin cabecera). Cupo consumido: 1/3.
 
+## 01C.6 Veredicto ciclo 2 (run #14 `actions/runs/38172210884`, commit `9a8c104a`) — 01C VERIFIED
+
+- Los 4 jobs SUCCESS: `ios-framework`, `android-regression`, `ios-app`, `ios-device-ipa` (11m aprox.).
+- Validación 12/12 PASS en CI (`platform IOS`, minos 16.0, sdk 26.4, arm64, bundle OK, estático, sin firma, sin junk) + artifacts publicados.
+- Verificación independiente en Linux del artifact descargado: ZIP válido, `Payload/MeldIOS.app/{MeldIOS,Info.plist,PkgInfo,compose-resources/}`, `file` = `Mach-O 64-bit arm64 executable`, plist `com.eirom16.meldios` / `MinimumOSVersion 16.0`, bit +x preservado, SHA-256 local idéntico al del informe CI.
+- IPA: `MeldIOS-unsigned-device.ipa`, **13.054.764 bytes**, SHA-256 `57f6291d66ea80e66b2cdf29d446b57917a7b20a405109724b445f47b369c1f0`.
+- Cupo consumido: 2/3. **Fase 01C: VERIFIED — UNSIGNED IPA GENERATED.** No se afirma instalación ni ejecución en iPhone (sin evidencia real).
+
 ---
 
 # FASE 01B-FIX03 — Forzar simulador arm64 para evitar el slice iosX64 (autonomía GitHub, máx. 3 ciclos CI)

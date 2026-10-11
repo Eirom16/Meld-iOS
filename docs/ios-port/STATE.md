@@ -1,8 +1,8 @@
 # STATE.md — Estado de continuidad del port Meld → iOS
 
-Última actualización (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `9e0e511b` + commit 01C pendiente de push · `git diff --check` limpio.
+Última actualización (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `9a8c104a` + cierre documental 01C pendiente de push · `git diff --check` limpio.
 
-> 01C EN CURSO (ciclo 2/3, 2026-10-11): run #13 con 3 jobs SUCCESS + `archive` device OK + 11/12 validaciones PASS; check 12 FAIL espurio (grep sobre cabecera `unzip -l`), corregido con `unzip -Z1`, PENDING_CI. 01B VERIFIED intacto.
+> 01C VERIFIED — UNSIGNED IPA GENERATED (2026-10-11): run #14 `38172210884` con los 4 jobs SUCCESS y 12/12 validaciones PASS (arm64, `platform IOS`, minos 16.0, sdk 26.4, bundle `com.eirom16.meldios`, estático, sin firma). IPA `MeldIOS-unsigned-device.ipa` (13.054.764 bytes, SHA-256 `57f6291d…369c1f0`, verificado también en local). Cupo consumido: 2/3. Instalación en iPhone: NOT TESTED.
 
 > 01B-FIX03 CERRADO (2/3 ciclos, 2026-10-11): run #11 `38168783902` con los 3 jobs SUCCESS y `** BUILD SUCCEEDED **` (`arm64-apple-ios16.0-simulator`, Debug). `ARCHS=arm64` eliminó `ios_x64` (ciclo 1); `MainViewControllerKt.MainViewController()` resolvió el case Swift (ciclo 2, header línea 182). Artifacts `MeldIOS-simulator-app` (13,8 MB) + framework (66 MB) vigentes. 01B **VERIFIED**. 01C no iniciada. Conclusión FIX02 conservada: XcodeGen se mantiene porque ya funciona.
 
@@ -27,7 +27,7 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 | 00 — Auditoría técnica | Diagnóstico + matriz A–E | **COMPLETE** 2026-10-09 (capítulos Fase 00 conservados bajo los de 01A/01B) |
 | 01A — Fundación KMP + framework | Toolchain 2.4.20, `shared/`, workflow 2 jobs | **VERIFIED** (run #4 @ `34ba79a3`: frameworks sim+device PASS, `:app:assembleFossDebug` PASS, Xcode 26.4.1) |
 | 01B — CMP + host iOS | `MeldApp()`, `MainViewController()`, `iosApp/`, job `ios-app` → `MeldIOS.app` | **VERIFIED** 2026-10-11 (run #11: 3 jobs SUCCESS, `BUILD SUCCEEDED` arm64 simulador, `MeldIOS.app` + header + artifacts verificados) |
-| 01C — Generación de IPA | Archive iphoneos + ZIP `Payload/` sin firma, artifact `.ipa` | **IN_PROGRESS** (ciclo 1/3, PENDING_CI; base run #12 verde) |
+| 01C — Generación de IPA | Archive iphoneos + ZIP `Payload/` sin firma, artifact `.ipa` | **VERIFIED** 2026-10-11 (run #14: 4 jobs SUCCESS, 12/12 checks, IPA 13.054.764 bytes) |
 | 02+ — Transporte MP, modelos, Room/DataStore, player AVFoundation | — | **NOT STARTED** (B2 InnerTubeX sigue siendo la incógnita mayor) |
 
 ## 4. Últimas fases concluidas
@@ -38,7 +38,7 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 
 ## 5. Bloqueos abiertos
 
-- CI: run #12 `38169795066` (commit `9e0e511b`) con 3 jobs SUCCESS + artifacts vigentes. 01C ciclo 1 PENDING_CI (job nuevo `ios-device-ipa`).
+- CI: run #14 `38172210884` (commit `9a8c104a`) con 4 jobs SUCCESS + artifacts `MeldIOS-unsigned-device-ipa` (13.054.764 bytes, SHA-256 `57f6291d…369c1f0`) y `MeldIOS-device-validation` vigentes. 01C VERIFIED.
 - FIX03 cerrado (run #11 verde): `ARCHS=arm64` + `MainViewController()` capitalizado; `iosX64()` sigue declarado sin molestar (el override basta); diagnóstico de header conservado en el workflow para futuros fallos.
 - FIX02 cerrado: XcodeGen genera en CI (exit 0, runs #9–#11). XcodeGen se mantiene porque ya funciona.
 - Incógnita menor: nombre exacto del símbolo Swift si la regla de facade difiriera (el grep de CI lo dictamina con candidatos en el log).
@@ -48,7 +48,7 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 
 ## 6. Próximo objetivo
 
-**Fase 01C — generación de IPA** (EN CURSO, ciclo 1/3): verificar el run del job `ios-device-ipa`; si verde, registrar tamaño/SHA-256 y marcar 01C VERIFIED; si falla, analizar logs y corregir (máx. 3 ciclos).
+**Fase 02+ — transporte MP, modelos, Room/DataStore, player AVFoundation** (NOT STARTED): requiere autorización nueva. No iniciar migración funcional ni reproductor en esta fase.
 
 ## 7. Información crítica para el siguiente agente
 

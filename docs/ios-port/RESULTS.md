@@ -30,6 +30,22 @@ Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `9e0e511b` + commit 01C 
 
 Fix ciclo 2 (este push): check 12 con `unzip -Z1`. Cupo: 1/3 consumido.
 
+## 01C.4 Veredicto ciclo 2 (run #14 `actions/runs/38172210884`) — ÉXITO
+
+| Criterio obligatorio | Resultado |
+|---|---|
+| 1. `ios-framework` PASS | SUCCESS |
+| 2. `android-regression` PASS | SUCCESS |
+| 3. `ios-app` PASS | SUCCESS (simulador intacto) |
+| 4. `ios-device-ipa` PASS | SUCCESS (12/12 validaciones) |
+| 5. `MeldIOS.app` iphoneos arm64 | vía `archive` (xcarchive `Products/Applications/`) |
+| 6. IPA descargable | `MeldIOS-unsigned-device-ipa` (13.054.764 bytes) |
+| 7. Mach-O / plataforma | arm64, `platform IOS` (device), minos 16.0, sdk 26.4 |
+| 8. Firma | deshabilitada (`codesign -dv` falla, como se exige) |
+| 9. SHA-256 | `57f6291d66ea80e66b2cdf29d446b57917a7b20a405109724b445f47b369c1f0` (CI + local idénticos) |
+
+Verificación local del artifact: `unzip -t` OK, `file` = `Mach-O 64-bit arm64 executable`, plist `com.eirom16.meldios`/`16.0`, bit +x preservado. Cupo consumido: 2/3. **Fase 01C: VERIFIED.** Instalación/ejecución en iPhone: NOT TESTED (fuera de alcance).
+
 ---
 
 ## 01C.3 Veredicto ciclo 1 (run #13 `actions/runs/38171331668`, commit `e978ba59`)
