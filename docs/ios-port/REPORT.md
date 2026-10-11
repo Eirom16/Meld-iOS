@@ -10,9 +10,19 @@ Contexto: run #9 (`actions/runs/38166146096`, commit `df3a1867`): XcodeGen PASS 
 - Sin cambios en este intento: `iosX64()` se conserva en `shared/build.gradle.kts`; versiones de Kotlin/Compose/Gradle intactas; compilación `iosArm64` de dispositivo intacta (job `ios-framework`); resto de pasos del job `ios-app` intactos.
 - Lectura prevista: si el error `ios_x64` desaparece, continuar la compilación completa de `MeldIOS.app`; si aparece otro error, tratarlo como bloqueo independiente; si `ARCHS=arm64` no evita `iosX64`, el siguiente paso es retirar `iosX64()` del módulo `shared` (alcance actual: simulador ARM64 + dispositivo ARM64), justificado en la documentación.
 
-## FIX03.2 Veredicto ciclo 1
+## FIX03.2 Veredicto ciclo 1 (run #10 `actions/runs/38168024527`, commit `3d4fb88c`)
 
-PENDING_CI → registrar run id, resultado de `xcodebuild`, presencia de `MeldIOS.app`, header `MeldShared.h` y artifacts abajo tras la ejecución. Cupo: 1/3 consumido con este push (incluye el commit documental `812a9767` pendiente, no pusheado en solitario).
+- `ARCHS=arm64` **elimina el error `ios_x64`**: el log muestra `:shared:compileKotlinIosSimulatorArm64` (ya no `compileKotlinIosX64`) y la fase `Compile Kotlin Framework` completa. `ios-framework` SUCCESS, `android-regression` SUCCESS, XcodeGen + `List schemes` SUCCESS.
+- Nuevo bloqueo independiente (capa Swift, no Kotlin): `ContentView.swift:9:30: error: type 'MainViewControllerKt' has no member 'mainViewController'`. El facade `MainViewControllerKt` sí resuelve (framework compilado y enlazado); solo el miembro difiere: Kotlin/Native conserva el case del `fun MainViewController()` en el selector ObjC, luego el miembro Swift es `MainViewController()` (mayúscula), como en el template oficial `compose-multiplatform-ios-android-template` (`Main_iosKt.MainViewController()`).
+- Cupo: 1/3 consumido. Ciclo 2: llamada `MainViewControllerKt.MainViewController()` en `ContentView.swift`, grep del verify a `MainViewController`, + paso diagnóstico que vuelca los símbolos `ViewController` de `MeldShared.h` si el build vuelve a fallar.
+
+## FIX03.3 Veredicto ciclo 2
+
+PENDING_CI → registrar run id, resultado de `xcodebuild`, presencia de `MeldIOS.app`, header `MeldShared.h` y artifacts abajo tras la ejecución. Cupo: 2/3 consumido con este push.
+
+---
+
+## FIX03.1 Corrección ciclo 1 (solo paso `Build MeldIOS.app`; resto intacto)
 
 ---
 

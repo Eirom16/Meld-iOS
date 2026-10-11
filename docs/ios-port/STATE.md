@@ -1,8 +1,8 @@
 # STATE.md — Estado de continuidad del port Meld → iOS
 
-Última actualización (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `812a9767` + fix FIX03 ciclo 1/3 pendiente de push (remoto `df3a1867`) · `git diff --check` limpio.
+Última actualización (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `3d4fb88c` + fix FIX03 ciclo 2/3 pendiente de push · `git diff --check` limpio.
 
-> 01B-FIX03 CICLO 1 PENDING_CI (2026-10-11): run #9 verificado en log (`ARCHS=arm64 x86_64` genérico → `:shared:compileKotlinIosX64` sin variantes CMP 1.12.1 para `ios_x64`; aviso `iosX64Test architecture mismatch` en host arm64). Fix mínimo aplicado: override `ARCHS=arm64` en el paso `Build MeldIOS.app` (Debug intacto, `iosX64()` conservado en este intento, versiones y `iosArm64` intactos). 01B sigue **BLOCKED** hasta el verde. Conclusión FIX02 conservada: XcodeGen se mantiene porque ya funciona (exit 0, run #9).
+> 01B-FIX03 CICLO 1 VERIFICADO EN CI (run #10 `38168024527`): `ARCHS=arm64` elimina el error `ios_x64` (framework `iosSimulatorArm64` compilado y enlazado; `ios-framework` + `android-regression` + XcodeGen PASS). Nuevo bloqueo independiente en Swift: `MainViewControllerKt` sin miembro `mainViewController` (el miembro conserva la mayúscula Kotlin → `MainViewController()`, como el template oficial). Ciclo 2 pendiente de push. 01B sigue **BLOCKED** hasta el verde. Conclusión FIX02 conservada: XcodeGen se mantiene porque ya funciona.
 
 ## 1. Objetivo general
 
@@ -24,7 +24,7 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 |---|---|---|
 | 00 — Auditoría técnica | Diagnóstico + matriz A–E | **COMPLETE** 2026-10-09 (capítulos Fase 00 conservados bajo los de 01A/01B) |
 | 01A — Fundación KMP + framework | Toolchain 2.4.20, `shared/`, workflow 2 jobs | **VERIFIED** (run #4 @ `34ba79a3`: frameworks sim+device PASS, `:app:assembleFossDebug` PASS, Xcode 26.4.1) |
-| 01B — CMP + host iOS | `MeldApp()`, `MainViewController()`, `iosApp/`, job `ios-app` → `MeldIOS.app` | **BLOCKED** 2026-10-11 (FIX03-ciclo1 PENDING_CI: override `ARCHS=arm64` para evitar slice `iosX64` sin variantes CMP; XcodeGen verificado FIX02) |
+| 01B — CMP + host iOS | `MeldApp()`, `MainViewController()`, `iosApp/`, job `ios-app` → `MeldIOS.app` | **BLOCKED** 2026-10-11 (FIX03-ciclo2 PENDING_CI: `ios_x64` eliminado con `ARCHS=arm64`; pendiente fix de case `MainViewController()` en Swift) |
 | 01C — Generación de IPA | Archive + export sin firma / `Payload/` para sideloading | **NOT STARTED** (requiere job `ios-app` en verde) |
 | 02+ — Transporte MP, modelos, Room/DataStore, player AVFoundation | — | **NOT STARTED** (B2 InnerTubeX sigue siendo la incógnita mayor) |
 
@@ -36,8 +36,8 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 
 ## 5. Bloqueos abiertos
 
-- CI pendiente: resultado del push FIX03-ciclo1 (job `ios-app` con `ARCHS=arm64`; re-verde de los otros dos). Si `ARCHS=arm64` no evita `iosX64`, ciclo 2 = retirar `iosX64()` de `shared/build.gradle.kts` (Tier-3/deprecado, sin valor en runners arm64; alcance actual: simulador ARM64 + dispositivo ARM64). FIX01 aplicado: si `xcodegen-diagnostics` aparece, revisar log + `.ips` antes de tocar el spec.
-- FIX03 ciclo 1 pendiente de CI: override `ARCHS=arm64` en `Build MeldIOS.app` (run #9 como base: `ARCHS=arm64 x86_64` → `compileKotlinIosX64` sin variantes CMP). `iosX64()` conservado en este intento; siguiente paso documentado si no basta.
+- CI pendiente: resultado del push FIX03-ciclo2 (llamada `MainViewController()` + verify capitalizado + diagnóstico de header en fallo; re-verde de los otros dos). `iosX64()` sigue declarado (el override `ARCHS=arm64` ya basta; no retirar targets en este ciclo). FIX01 aplicado: si `xcodegen-diagnostics` aparece, revisar log + `.ips` antes de tocar el spec.
+- FIX03 ciclo 1 verificado en CI (run #10): `ARCHS=arm64` elimina `ios_x64` (framework `iosSimulatorArm64` OK); nuevo bloqueo Swift `mainViewController` → ciclo 2 con `MainViewController()` (template oficial como evidencia) + diagnóstico de header en fallo.
 - FIX02 cerrado: XcodeGen genera en CI (exit 0, run #9). XcodeGen se mantiene porque ya funciona.
 - Incógnita menor: nombre exacto del símbolo Swift si la regla de facade difiriera (el grep de CI lo dictamina con candidatos en el log).
 - XcodeGen latest: si una versión futura rompe `project.yml`, fijar versión.

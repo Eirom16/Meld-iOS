@@ -20,9 +20,27 @@ Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `812a9767` + fix workflo
 - Sin tocar: `shared/build.gradle.kts`, `iosApp/project.yml`, Kotlin/Compose/Gradle, `app/`, `innertube/`, resto de workflows.
 - Preexistente sin commitear: `.gitignore` (append 01B; se conserva fuera del commit, sin revisar en este ciclo).
 
-## FIX03.3 Veredicto ciclo 1
+## FIX03.3 Veredicto ciclo 1 (run #10 `actions/runs/38168024527`)
 
-PENDING_CI. Criterios: `ios-framework` PASS, `android-regression` PASS, XcodeGen PASS, `xcodebuild` PASS, `MeldIOS.app` existente, `MeldShared.framework` integrado, `mainViewController` en header, artifact `MeldIOS-simulator-app` publicado. Si `ARCHS=arm64` no evita `iosX64`, ciclo 2 = retirar `iosX64()` de `shared/` con justificación.
+| Criterio | Resultado |
+|---|---|
+| `ios-framework` | PASS |
+| `android-regression` | PASS |
+| XcodeGen + `List schemes` | PASS |
+| Error `ios_x64` | ELIMINADO (`compileKotlinIosSimulatorArm64` en el log; framework compilado y enlazado) |
+| `xcodebuild` | FAIL nuevo e independiente: `ContentView.swift:9` — `MainViewControllerKt` sin miembro `mainViewController` (el facade existe; el miembro conserva la mayúscula Kotlin) |
+| `MeldIOS.app` / header / artifacts | PENDING (bloqueado por el error Swift) |
+
+## FIX03.4 Cambios ciclo 2 (en este push)
+
+- `iosApp/MeldIOS/ContentView.swift`: llamada → `MainViewControllerKt.MainViewController()` (+ comentario con la regla de case y la referencia al template oficial).
+- `shared/.../MainViewController.kt`: solo comentario (minúscula → mayúscula); sin cambios de código.
+- Workflow: verify `grep -n "MainViewController"` + nuevo paso diagnóstico `Dump MeldShared header candidates` (`if: failure()`, vuelca `grep ViewController` del `MeldShared.h` real para no iterar a ciegas).
+- Sin tocar: versiones, targets (`iosX64()` sigue declarado), `iosArm64`, `app/`, `innertube/`, `project.yml`.
+
+## FIX03.5 Veredicto ciclo 2
+
+PENDING_CI. Criterios: `ios-framework` PASS, `android-regression` PASS, XcodeGen PASS, `xcodebuild` PASS, `MeldIOS.app` existente, `MeldShared.framework` integrado, `MainViewController` en header, artifact `MeldIOS-simulator-app` publicado. Cupo tras este push: 2/3.
 
 ---
 

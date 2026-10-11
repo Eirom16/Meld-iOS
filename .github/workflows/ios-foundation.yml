@@ -323,12 +323,27 @@ jobs:
           -derivedDataPath iosApp/build
           ARCHS=arm64 CODE_SIGNING_ALLOWED=NO build
 
+      - name: Dump MeldShared header candidates (diagnostic)
+        # FIX03 ciclo 2: si el build falla, el framework ya se compiló (la fase
+        # de script corre antes de Compile Sources). Volcar los símbolos reales
+        # evita otro ciclo a ciegas: el log muestra el nombre exacto del miembro.
+        if: failure()
+        run: |
+          find shared/build -name MeldShared.h | head -n 5 || true
+          header="$(find shared/build -name MeldShared.h | head -n 1)"
+          if [ -n "$header" ]; then
+            echo "header: $header"
+            grep -n "ViewController" "$header" | head -n 20 || true
+          else
+            echo "no MeldShared.h found"
+          fi
+
       - name: Verify MeldShared export in generated header
         run: |
           header="$(find shared/build/xcode-frameworks -name MeldShared.h | head -n 1)"
           test -n "$header"
           echo "header: $header"
-          grep -n "mainViewController" "$header"
+          grep -n "MainViewController" "$header"
 
       - name: Verify MeldIOS.app exists
         run: |
