@@ -26,9 +26,13 @@ Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `70b3f02b` + commit de a
 
 Run #7 (`actions/runs/38165060516`, commit `6e4d8afe`): `minimal exit code: 0` (`Created project Mini.xcodeproj`, artifact `xcodegen-isolation` con `xcodegen-minimal.log` de 162 bytes) frente a `xcodegen exit code: 133` del proyecto real. Binario universal x86_64+arm64 sobre macOS 26.6.2. `ios-framework` y `android-regression` SUCCESS. **H1 refutada, H2 confirmada.**
 
-## FIX02.4 Ciclo 2: bisección V1–V5 (mismo commit que este informe)
+## FIX02.5 Ciclo 3: fix de una línea + verificación final (mismo commit que este informe)
 
-Añadidos pasos `XcodeGen spec bisection (V1-V5)` + upload ampliado en `ios-app`. Validaciones locales: `bash -n` OK, `yaml.safe_load` OK (18 steps), los 4 specs embebidos parsean con la estructura prevista (V1 1 config; V2 settings con las 10 claves exactas; V3 script con `$SRCROOT`/`OVERRIDE_KOTLIN` intactos; V4 excludes+info), transformada `awk` de V5 verificada (solo añade `Release: release`), `git diff --check` limpio. PENDING_CI: registrar `summary.txt` (V1..V5) y decidir el fix del ciclo 3.
+Evidencia de bisección (run #8, `38165963313`, artifact descargado con `gh run download`): `summary.txt` = `V1=133, V2=0, V3=0, V4=0, V5=0`; V1 reproduce la firma (59 bytes, 2 líneas ⚙️), V5 produce `MeldIOS.xcodeproj` desde el spec real + Release. Cambio: `iosApp/project.yml` +`Release: release` (+ comentario FIX02); workflow: bisección retirada, test mínimo + upload simple conservados. Validaciones locales: `yaml.safe_load` OK (17 steps, sin bisección), `configs: {Debug, Release}`, `git diff --check` limpio. PENDING_CI (ciclo 3/3): el verde de `Generate Xcode project` + `xcodebuild` dictamina el Caso A.
+
+## FIX02.4 Ciclo 2: bisección V1–V5 (ejecutada en run #8)
+
+Añadidos pasos `XcodeGen spec bisection (V1-V5)` + upload ampliado en `ios-app`. Validaciones locales: `bash -n` OK, `yaml.safe_load` OK (18 steps), los 4 specs embebidos parsean con la estructura prevista (V1 1 config; V2 settings con las 10 claves exactas; V3 script con `$SRCROOT`/`OVERRIDE_KOTLIN` intactos; V4 excludes+info), transformada `awk` de V5 verificada (solo añade `Release: release`), `git diff --check` limpio. Resultado: `V1=133, V2=0, V3=0, V4=0, V5=0` (ver FIX02.5).
 
 ---
 

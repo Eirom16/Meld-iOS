@@ -11,6 +11,10 @@ options:
 
 configs:
   Debug: debug
+  # FIX02: XcodeGen 2.45.4 aborta con exit 133 si el spec declara una sola
+  # config (bisección V1=133, V5 real+Release=0, run #8). Release no se usa
+  # para compilar (el job fija -configuration Debug); solo completa el modelo.
+  Release: release
 
 targets:
   MeldIOS:

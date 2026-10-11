@@ -34,7 +34,19 @@ Contexto: run #6 (`actions/runs/37985938502`, commit `70b3f02b`): `ios-framework
 
 - Nuevo paso `XcodeGen spec bisection (V1-V5)` tras el test mínimo: genera 5 variantes con el mismo binario (V1 = 1 sola config Debug; V2 = settings.base exacto; V3 = preBuildScripts exacto; V4 = excludes+info.plist; V5 = copia real de `iosApp/` + `Release: release` vía `awk`, verificado localmente: solo añade esa línea), recoge `summary.txt` y nunca falla el job.
 - Upload `xcodegen-isolation` ampliado a `xcodegen-minimal.log` + `xcbis-logs/` (`if: always()`).
-- Lectura: si V1 FAIL y V5 PASS → fix = añadir config Release (ciclo 3). Si falla V2/V3/V4 → el fix ataca esa opción. Si todo PASS salvo el real → combinación de factores; re-bisectar.
+## FIX02.5 Fix ciclo 3: añadir config Release (causa probada, cambio mínimo)
+
+Bisección run #8 (`actions/runs/38165963313`, commit `4c6ba525`), artifact `xcodegen-isolation` → `xcbis-logs/summary.txt`:
+
+| Variante | Contenido | Exit |
+|---|---|---|
+| V1 | Mini + 1 sola config Debug | **133** (reproduce la firma exacta: 2 líneas ⚙️) |
+| V2 | Mini + settings.base exacto | 0 (`V2Settings.xcodeproj`) |
+| V3 | Mini + preBuildScripts exacto | 0 (`V3Scripts.xcodeproj`) |
+| V4 | Mini + excludes + info.plist | 0 (`V4Info.xcodeproj`) |
+| V5 | Copia real de `iosApp/` + `Release: release` | 0 (`MeldIOS.xcodeproj`) |
+
+Causa: XcodeGen 2.45.4 hace `fatalError` (SIGTRAP, exit 133, sin validación ni crash report) al generar un spec de **una sola configuración**. Settings, scripts, excludes e info quedan exonerados. Fix: `Release: release` en `iosApp/project.yml` (una línea + comentario; idéntico a lo probado en V5). La compilación sigue usando `-configuration Debug`; Release solo completa el modelo. Bisección retirada del workflow (misión cumplida); se conserva el test mínimo como canario de runner. Sin plan alternativo necesario salvo que el `xcodebuild` posterior revele un bloqueo nuevo.
 
 ---
 

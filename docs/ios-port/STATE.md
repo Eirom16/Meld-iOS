@@ -1,8 +1,8 @@
 # STATE.md — Estado de continuidad del port Meld → iOS
 
-Última actualización (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `6e4d8afe` + commit FIX02-ciclo2 · `git diff --check` limpio.
+Última actualización (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `4c6ba525` + commit FIX02-ciclo3 · `git diff --check` limpio.
 
-> 01B-FIX02 ciclo 2/3 (2026-10-11): ciclo 1 VEREDICTO — mínimo exit 0 (`Mini.xcodeproj` creado), real exit 133, binario universal sobre macOS 26.6.2 (run #7). H1 refutada, H2 confirmada. En curso bisección V1–V5 en un solo job (V1 1 config; V2 settings; V3 scripts; V4 excludes+info; V5 real+Release). 01B sigue **BLOCKED**. Decisión xtool: macOS principal, sin Darwin SDK en Linux, xtool auxiliar/experimental, KMP+CMP conservados, sin migración a Swift puro (ver REPORT §FIX02.0).
+> 01B-FIX02 ciclo 3/3 (2026-10-11): bisección concluyente (run #8: `V1=133, V2=0, V3=0, V4=0, V5=0`) — causa = spec de 1 sola config; fix = `Release: release` en `iosApp/project.yml` (probado en V5: genera `MeldIOS.xcodeproj`). Bisección retirada; test mínimo conservado como canario. 01B sigue **BLOCKED** hasta el verde de generate+xcodebuild. Decisión xtool: macOS principal, sin Darwin SDK en Linux, xtool auxiliar/experimental, KMP+CMP conservados, sin migración a Swift puro (ver REPORT §FIX02.0).
 
 ## 1. Objetivo general
 
