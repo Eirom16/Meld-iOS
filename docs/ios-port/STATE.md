@@ -1,6 +1,10 @@
 # STATE.md — Estado de continuidad del port Meld → iOS
 
-Última actualización (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `57d08cda` + fix 01D-FIX01 pendiente de push · `git diff --check` limpio.
+Última actualización (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `427e4140` + 02A IMPLEMENTED, PENDING_CI (ciclo CI 1/3 al hacer push) · `git diff --check` limpio.
+
+> 02A IMPLEMENTED / PENDING_CI (2026-10-11, ciclo CI 1/3 al hacer push): fundación iOS-only (`:shared` sin Android ni iosX64; settings solo `:shared`; job `android-regression` sustituido por `shared-tests` con `:shared:jvmTest`; SDK Android eliminado del pipeline) + dominio musical (`Track/Album/Artist/Playlist`, `MusicCatalogRepository`, demo en memoria) + UI de catálogo navegable (4 pestañas + 4 detalles + estados loading/vacío/error, sin reproductor falso) + 18/18 tests PASS en local (`ModelsTest` 9 + `RepositoryTest` 9). CI pendiente.
+
+> 01D — DEVICE VERIFIED (manual smoke test, 2026-10-11): el propietario firmó el IPA 01D-FIX01 con 3uTools, lo instaló en iPhone 11 Pro y la app arrancó y renderizó (texto Kotlin visible, Compose OK, contador con 6 taps, sin el cierre inmediato anterior). Alcance: arranque + renderizado + interacción inicial. No se afirman funciones futuras.
 
 > 01D-FIX01 CI VERIFIED / DEVICE RETEST PENDING (2026-10-11, ciclo CI 1/3): run #16 `38175702380` con los 4 jobs SUCCESS y 13/13 validaciones PASS (`CADisableMinimumFrameDurationOnPhone boolean true` en CI + `True [bool]` verificado en local). IPA `MeldIOS-unsigned-device.ipa` (13.054.877 bytes, SHA-256 `0ab228f9…dd587a`). Retest en iPhone pendiente del propietario (firma + instalación + arranque).
 
@@ -14,8 +18,8 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 
 ## 2. Decisiones de arquitectura (consolidadas Fase 00 + 01A + 01B)
 
-- D1. `app/` e `innertube/` permanecen módulos Android puros; en 01A/01B no se tocó ningún fichero suyo.
-- D2. `shared/` KMP (`com.meld.shared`, compileSdk 37, minSdk 26; targets android/iosX64/iosArm64/iosSimulatorArm64; framework estático `MeldShared`) ahora con CMP: `compose.runtime/foundation/ui/material3` en commonMain.
+- D1. `app/` e `innertube/` permanecen en disco como referencia histórica, pero desde 02A están FUERA de la configuración Gradle activa (`settings.gradle.kts` solo incluye `:shared`); en 01A/01B no se tocó ningún fichero suyo.
+- D2. `shared/` KMP iOS-only (`com.meld.shared`; targets iosArm64/iosSimulatorArm64 + `jvm()` solo como host de tests; framework estático `MeldShared`) con CMP: `compose.runtime/foundation/ui/material3` en commonMain. Sin target Android, sin `iosX64()`, sin `androidMain/`. Decisión iOS-only del propietario: sin compatibilidad/compilación/regresión Android.
 - D3. Toolchain: Kotlin **2.4.20** · AGP **9.3.1** · Gradle **9.7.0** · KSP **2.3.11** (VERIFIED en Android por la run #4) · CMP **1.12.1** (clave `composeMultiplatform`, separada del BOM Jetpack).
 - D4. UI iOS: `MeldApp()` (tema oscuro, `Greeting`, contador demo) + `MainViewController()` en fichero sin package → Swift `MainViewControllerKt.mainViewController()` (grep en `MeldShared.h` como árbitro CI).
 - D5. Host `iosApp/` SwiftUI mínimo (`com.eirom16.meldios`, iOS 16.0, `CADisableMinimumFrameDurationOnPhone`); proyecto vía XcodeGen (`project.yml` versionado, `.xcodeproj` solo en CI); integración directa `embedAndSignAppleFrameworkForXcode` con `ENABLE_USER_SCRIPT_SANDBOXING=NO` y heaps capados por CLI.
@@ -30,8 +34,9 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 | 01A — Fundación KMP + framework | Toolchain 2.4.20, `shared/`, workflow 2 jobs | **VERIFIED** (run #4 @ `34ba79a3`: frameworks sim+device PASS, `:app:assembleFossDebug` PASS, Xcode 26.4.1) |
 | 01B — CMP + host iOS | `MeldApp()`, `MainViewController()`, `iosApp/`, job `ios-app` → `MeldIOS.app` | **VERIFIED** 2026-10-11 (run #11: 3 jobs SUCCESS, `BUILD SUCCEEDED` arm64 simulador, `MeldIOS.app` + header + artifacts verificados) |
 | 01C — Generación de IPA | Archive iphoneos + ZIP `Payload/` sin firma, artifact `.ipa` | **VERIFIED** 2026-10-11 (run #14: 4 jobs SUCCESS, 12/12 checks, IPA 13.054.764 bytes) |
-| 01D — Arranque en iPhone físico | Crash SIGABRT (`PlistSanityCheck`): IPA sin `CADisableMinimumFrameDurationOnPhone` | **CI VERIFIED / DEVICE RETEST PENDING** 2026-10-11 (run #16: 4 jobs SUCCESS, 13/13 checks, IPA 13.054.877 bytes con bool `true`) |
-| 02+ — Transporte MP, modelos, Room/DataStore, player AVFoundation | — | **NOT STARTED** (B2 InnerTubeX sigue siendo la incógnita mayor) |
+| 01D — Arranque en iPhone físico | Crash SIGABRT (`PlistSanityCheck`): IPA sin `CADisableMinimumFrameDurationOnPhone` | **DEVICE VERIFIED** 2026-10-11 (smoke test manual del propietario: IPA 01D-FIX01 firmado con 3uTools, arranque + render + 6 taps OK en iPhone 11 Pro; alcance limitado) |
+| 02A — Fundación iOS-only + catálogo musical | Settings solo `:shared`; `MusicCatalogRepository` + demo + UI navegable + 18 tests | **IMPLEMENTED / PENDING_CI** (ciclo 1/3 al hacer push; 18/18 PASS en local) |
+| 02B+ — Transporte real, modelos remotos, player AVFoundation | — | **NOT STARTED** |
 
 ## 4. Últimas fases concluidas
 
@@ -52,11 +57,13 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 
 ## 6. Próximo objetivo
 
-**Fase 02+ — transporte MP, modelos, Room/DataStore, player AVFoundation** (NOT STARTED): requiere autorización nueva. No iniciar migración funcional ni reproductor en esta fase.
+**Fase 02A — CI VERIFIED / DEVICE RETEST PENDING**: push de este ciclo y 4 jobs verdes en GHA (cupo 1/3). Tras el verde, el propietario firma el nuevo IPA, lo instala y prueba la UI del catálogo en su iPhone (la UI musical NO se declara verificada en dispositivo hasta entonces).
+
+**Fase 02B+** (NOT STARTED, requiere autorización nueva): transporte real (Ktor/Darwin, InnerTubeX pendiente B2), autenticación, persistencia, reproductor AVFoundation. No iniciar en esta fase.
 
 ## 7. Información crítica para el siguiente agente
 
-- Rama `feat/ios-foundation`. Autonomía FIX02 vigente: commits + push solo a esta rama, máx. 3 ciclos CI, sin force-push/reset destructivo/merge/release/main. Preexistente `.gitignore` modificado: conservar fuera de los commits. `AGENTS.md` vigente; solo los tres informes de `docs/ios-port/` son Markdown editable.
-- Rutas clave 01B: `shared/src/commonMain/.../ui/MeldApp.kt`, `shared/src/iosMain/.../MainViewController.kt`, `iosApp/project.yml`, `iosApp/MeldIOS/*`, `.github/workflows/ios-foundation.yml` (job `ios-app`), `gradle/libs.versions.toml` (clave `composeMultiplatform`).
+- Rama `feat/ios-foundation`. Autonomía 02A vigente: commits + push solo a esta rama, máx. 3 ciclos CI (1/3 al hacer push de este ciclo), sin force-push/reset destructivo/merge/release/main. `.gitignore` preexistente (append 01B: `.xcodeproj` + `iosApp/build/`) analizado y justificado en RESULTS §02A.1: se incluye en el commit 02A. `AGENTS.md` vigente salvo §building (`:app:assembleFossDebug` retirado por iOS-only); solo los tres informes de `docs/ios-port/` son Markdown editable.
+- Rutas clave 02A: `shared/src/commonMain/.../music/{Models,MusicCatalogRepository,DemoCatalog}.kt`, `shared/src/commonMain/.../ui/{MeldApp,CatalogComponents}.kt`, `shared/src/commonTest/.../music/{ModelsTest,RepositoryTest}.kt`, `shared/src/jvmMain/.../Platform.jvm.kt`, `settings.gradle.kts` (solo `:shared`), `.github/workflows/ios-foundation.yml` (jobs `ios-framework, shared-tests, ios-app, ios-device-ipa`). `iosApp/project.yml` + claves plist 01D intactos.
 - Cifras ancla: 6135 lín. `MusicService`, 531 `.kt`, 56 Media3, 54 Hilt, 223 JVM/Android-imports, 57 locales, 20 entidades Room, 14 ops GQL Spotify.
 - No afirmar VERIFIED sin GHA; no inventar comandos (reales en `RESULTS.md §01B.1`).

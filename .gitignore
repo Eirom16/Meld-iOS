@@ -120,3 +120,7 @@ app/src/main/cpp/coverart/
 .cortexkit
 .mcp.json
 *.har
+
+# Fase 01B — XcodeGen: el .xcodeproj se genera en CI desde iosApp/project.yml
+iosApp/*.xcodeproj
+iosApp/build/

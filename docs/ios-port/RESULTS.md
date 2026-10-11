@@ -1,3 +1,36 @@
+# FASE 02A — Fundación iOS-only + catálogo musical (ciclo 1/3)
+
+Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `427e4140` + cambios 02A · Autonomía GitHub activa (commit+push a la rama, 1 ciclo CI consumido de 3).
+
+## 02A.1 Comandos ejecutados
+
+| # | Comando | Resultado |
+|---|---|---|
+| 1 | `git status/branch/log/diff` + lectura `AGENTS.md`, `settings/root/shared gradle`, `libs.versions.toml`, `iosApp/`, `shared/src/`, workflow, `docs/ios-port/*`, triggers `build*.yml` | PASS. HEAD `427e4140` en sync; único `M` preexistente: `.gitignore` (append 01B: ignora `.xcodeproj` generado + `iosApp/build/`; justificado: evita versionar artefactos generados en CI — se incluye en este commit con esa justificación) |
+| 2 | Estudio dominio original (`MediaMetadata.kt`, `Song/Album/Artist/PlaylistEntity`) | PASS. Conceptos reutilizados sin dependencias Android/Room/Media3/Hilt ni JVM-only |
+| 3 | Edición `settings.gradle.kts` (solo `:shared`), `shared/build.gradle.kts` (sin android/iosX64, +jvm test-host, +coroutines-test), `libs.versions.toml` (+coroutines 1.11.0/test), rm `androidMain/`, nuevo `jvmMain/Platform.jvm.kt` | PASS. `git diff --check` limpio |
+| 4 | Nuevos `music/{Models,MusicCatalogRepository,DemoCatalog}.kt`, `ui/CatalogComponents.kt`, rewrite `ui/MeldApp.kt`, `commonTest/music/{ModelsTest,RepositoryTest}.kt` | PASS. Sin Icons (sin dep icons-core): back textual, placeholder con inicial |
+| 5 | Workflow: job `android-regression` → `shared-tests` (`:shared:jvmTest`), SDK Android eliminado de los 3 jobs iOS | PASS. `pyyaml safe_load`: jobs `ios-framework, shared-tests, ios-app, ios-device-ipa`; 0 refs Android |
+| 6 | `./gradlew :shared:tasks --all` sin `ANDROID_HOME` | PASS (59s, BUILD SUCCESSFUL) |
+| 7 | `./gradlew :shared:compileKotlinIosSimulatorArm64 :shared:compileKotlinIosArm64 :shared:jvmTest` | PASS (BUILD SUCCESSFUL): klibs sim+device OK; **18/18 tests PASS** (`ModelsTest` 9 + `RepositoryTest` 9, 0 failures/errors); `!!` innecesarios eliminados tras aviso del compilador |
+| 8 | Verificación tareas CI (`linkDebugFrameworkIos{SimulatorArm64,Arm64}`, `embedAndSignAppleFrameworkForXcode`, `jvmTest`) | PASS. Sin restos `iosX64` |
+| 9 | Actualización `REPORT/RESULTS/STATE.md` | PASS, mismo commit (evita ciclos CI extra) |
+| 10 | Commit + push a `feat/ios-foundation` (este ciclo) | PENDING → registrar run id y veredicto abajo tras la ejecución |
+
+## 02A.2 Archivos (ciclo 1)
+
+- MODIFICADO: `settings.gradle.kts`, `shared/build.gradle.kts`, `gradle/libs.versions.toml`, `shared/.../ui/MeldApp.kt`, `.github/workflows/ios-foundation.yml`, `.gitignore` (preexistente 01B, justificado arriba).
+- ELIMINADO: `shared/src/androidMain/` (único fichero `Platform.android.kt`).
+- CREADO: `shared/.../music/{Models,MusicCatalogRepository,DemoCatalog}.kt`, `shared/.../ui/CatalogComponents.kt`, `shared/src/jvmMain/.../Platform.jvm.kt`, `shared/src/commonTest/.../music/{ModelsTest,RepositoryTest}.kt`.
+- ACTUALIZADO: `docs/ios-port/{REPORT,RESULTS,STATE}.md`.
+- Sin tocar: `app/**`, `innertube/**` (referencia histórica en disco), `iosApp/**` (plist 01D intacto), versiones Kotlin/Compose/Gradle/XcodeGen, resto de workflows.
+
+## 02A.3 Veredicto ciclo 1
+
+PENDING_CI. Cierre 01D registrado: **DEVICE VERIFIED (manual smoke test)** — IPA 01D-FIX01 firmado con 3uTools, arranque/renderizado/interacción (6 taps) OK en iPhone 11 Pro del propietario; alcance limitado a arranque+render+interacción inicial.
+
+---
+
 # FASE 01D-FIX01 — Declarar claves Info.plist en XcodeGen (ciclo 1/3)
 
 Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `57d08cda` + fix workflow/project · Autonomía GitHub activa (commit+push a la rama, 1 ciclo CI consumido de 3).

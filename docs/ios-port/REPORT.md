@@ -1,3 +1,61 @@
+# FASE 02A — Fundación iOS-only + primer catálogo musical (autonomía GitHub, máx. 3 ciclos CI)
+
+Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `427e4140` (01D-FIX01 CI VERIFIED como base) · Estado: IMPLEMENTED, PENDING_CI, ciclo CI 1/3.
+
+## 02A.0 Cierre de 01D: DEVICE VERIFIED (smoke test manual del propietario)
+
+Evidencia física aportada por el propietario sobre el IPA corregido de 01D-FIX01 (firmado con 3uTools, instalado en iPhone 11 Pro):
+
+- Interfaz Meld-iOS renderizada en el dispositivo.
+- Texto compartido Kotlin visible.
+- Compose Multiplatform funcionando.
+- Contador interactivo con seis pulsaciones registradas.
+- Ausencia del cierre inmediato anterior en esa prueba.
+
+Alcance declarado: **arranque, renderizado e interacción inicial verificados**. No se afirma que funciones futuras estén verificadas. Estado: **01D — DEVICE VERIFIED (manual smoke test)**.
+
+## 02A.1 Decisión arquitectónica: iOS-only
+
+Por decisión del propietario, Meld-iOS es exclusivamente una app iOS. Sin requisito de compatibilidad, compilación, mantenimiento ni regresión Android. Meld y Metrolist originales siguen siendo la referencia Android. Kotlin/Native + Compose Multiplatform se conservan como base; Swift/SwiftUI/Foundation/AVFoundation son válidos donde aporten ventaja. `app/` e `innertube/` permanecen en disco como referencia histórica, fuera de la configuración Gradle activa. Sin reescribir el proyecto en Swift.
+
+## 02A.2 Auditoría y simplificación (Paso A)
+
+Clasificación de dependencias Gradle:
+
+- A (necesarias iOS): plugin `kotlinMultiplatform`, plugin `composeMultiplatform` + compose-compiler, `compose.runtime/foundation/ui/material3` en commonMain, JDK 21, Xcode 26.4.1, XcodeGen 2.45.4, targets `iosArm64` + `iosSimulatorArm64`, framework estático `MeldShared`.
+- B (solo Android, retiradas del build activo): target `android` de `:shared` (plugin `androidKmpLibrary` + bloque `android{}`), `iosX64()` (Tier-3 sin artefactos CMP 1.12.1; el override `ARCHS=arm64` ya lo evitaba), `shared/src/androidMain/Platform.android.kt`, includes `:app`/`:innertube` en `settings.gradle.kts`, job `android-regression`, pasos `Set up Android SDK` + `Ensure Android 37` en los 3 jobs iOS, `:app:assembleFossDebug` como gate.
+- C (compartidas reemplazables): ninguna nueva en esta fase.
+- D (referencia histórica, no participa en la compilación): directorios `app/`, `innertube/` (presentes en disco, excluidos de settings).
+- Residual documentado (no se toca por mínimo riesgo, no descarga SDK): alias `androidKmpLibrary apply false` y `classpath(libs.gradle)` (AGP) en el root `build.gradle.kts`, bloque `exclusiveContent` de InnerTubeX y flags `android.*` en `gradle.properties`, resto de entradas Android en `libs.versions.toml`, workflows `build*.yml` (solo corren en `main`/PR/`dispatch`; `build_pr.yml` fallaría en una PR desde esta rama porque `:app` ya no configura — sin merges previstos, fuera de alcance).
+
+Añadido: target `jvm()` en `:shared` SOLO como host de pruebas (`:shared:jvmTest` ejecuta `commonTest` en CI ubuntu y en Linux local); no es plataforma destino y no genera framework. `expect platformName()` conserva su `actual` en `iosMain` y suma `jvmMain/Platform.jvm.kt`.
+
+Verificación local sin `ANDROID_HOME`: `:shared:tasks --all` PASS, `compileKotlinIosSimulatorArm64` + `compileKotlinIosArm64` PASS (klib), tareas `linkDebugFrameworkIos{SimulatorArm64,Arm64}` + `embedAndSignAppleFrameworkForXcode` + `jvmTest` presentes. `project.yml` e `Info.plist` intactos (claves 01D conservadas).
+
+## 02A.3 Dominio musical (Pasos B–C)
+
+Estudiados `MediaMetadata` (id/title/artists/duration-int-segundos/thumbnail/album/explicit/liked), `SongEntity`/`AlbumEntity`/`ArtistEntity`/`PlaylistEntity` y modelos `innertube` `@Serializable`. Reutilizados los conceptos (IDs opacos, duración en segundos con `-1` = desconocida, artwork opcional, relaciones canción↔álbum↔artista↔playlist) sin copiar dependencias Android/Room/Media3/Hilt ni APIs JVM (`LocalDateTime`, `Serializable`).
+
+Nuevos modelos en `shared/src/commonMain/.../music/Models.kt` (solo stdlib, inmutables): `Track` (id, title, `artists: List<ArtistRef>`, `album: AlbumRef?`, `durationSeconds`, `artworkUrl?`, `explicit`, derivados `formattedDuration`/`artistNames`), `Artist`, `Album` (con `trackIds`), `Playlist` (con `trackIds`), más `ArtistRef`/`AlbumRef` y `formatDuration()` (`m:ss`, `h:mm:ss`, `"--:--"` si negativa).
+
+## 02A.4 Contratos y demo (Paso D)
+
+`music/MusicCatalogRepository.kt`: interfaz con `tracks/track(id)`, `albums/album(id)`, `artists/artist(id)`, `playlists/playlist(id)` (null si ausente) + resolutores `playlistTracks/albumTracks/artistTracks` (listas vacías si ausente) + `snapshot()`. `InMemoryMusicCatalogRepository` con datos inyectados; `failure: DemoCatalogException?` opcional para estados de error. `music/DemoCatalog.kt`: 6 pistas / 2 álbumes / 3 artistas / 2 playlists ficticios (`demo-*`, p. ej. "Demo Sunrise"), con casos útiles (explícito, colaboración multi-artista, duración larga 1:02:01, duración desconocida, single sin álbum, playlist con ID inexistente que se ignora). Sin networking, sin credenciales, sin YouTube Music/Spotify/InnerTubeX.
+
+## 02A.5 Interfaz (Paso E)
+
+`ui/MeldApp.kt` reescrito (tema oscuro Meld conservado): `NavigationBar` con 4 pestañas (Songs/Albums/Artists/Playlists), listas `LazyColumn` con datos reales del repositorio (carga `suspend` vía `LaunchedEffect`), 4 pantallas de detalle con navegación de regreso (`‹ Back`), cabeceras, `CatalogRow` reutilizable, placeholder de artwork local (inicial, sin red), badge explícito, estados loading/vacío/error con reintento, etiqueta honesta "Demo catalog · no streaming yet". `ui/CatalogComponents.kt`: `ArtPlaceholder`, `CatalogRow`, `ExplicitBadge`, `SectionTitle`, `LoadingView`, `EmptyView`, `ErrorView`. Sin reproductor falso: el detalle de canción muestra `OutlinedButton` deshabilitado "Playback not available in this phase". `ContentView.swift` y host SwiftUI intactos.
+
+## 02A.6 Pruebas y pipeline (Paso F)
+
+`commonTest/.../music/ModelsTest.kt` (9 tests: formato 0:00/1:35/59:59/1:02:01/`--:--`, `artistNames`, delegación, inmutabilidad) + `RepositoryTest.kt` (9 tests: snapshot demo, detalle, IDs desconocidos → null/vacío, relaciones álbum/artista/playlist incl. skip de ID inexistente, repositorio vacío, repositorio en fallo → `DemoCatalogException` en las 6 llamadas). Local: **18/18 PASS** (`:shared:jvmTest`, verificado en esta sesión). Workflow: 4 jobs (`ios-framework`, `shared-tests` nuevo en ubuntu con `:shared:jvmTest` + upload de reports en fallo, `ios-app`, `ios-device-ipa`); validaciones 01C/01D (13 checks incl. plist booleano) intactas.
+
+## 02A.7 Veredicto ciclo 1
+
+PENDING_CI (registrar run id y resultado tras el push). Cupo: 1/3 al hacer push. Criterios de éxito pendientes de CI: framework sim+device, `shared-tests` verde, app simulador, IPA 13 checks con `CADisableMinimumFrameDurationOnPhone=true`. En iPhone: DEVICE RETEST PENDING (el propietario prueba el nuevo IPA; la UI musical solo se declara verificada en dispositivo tras su prueba).
+
+---
+
 # FASE 01D-FIX01 — Crash de arranque por Info.plist reescrito (autonomía GitHub, máx. 3 ciclos CI)
 
 Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `57d08cda` (run #15 `38172944050` con los 4 jobs SUCCESS como base) · Estado: IMPLEMENTED, PENDING_CI, ciclo CI 1/3.

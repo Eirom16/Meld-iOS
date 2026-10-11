@@ -1,5 +1,6 @@
-# Fase 01A — Fundación KMP: compila el framework iOS del módulo :shared
-# y verifica que Android sigue verde. No toca los workflows Android existentes.
+# Fase 02A — iOS-only: compila el framework iOS del módulo :shared, ejecuta
+# las pruebas de lógica en host JVM, compila la app de simulador y el IPA de
+# dispositivo. Sin regresión Android (settings.gradle.kts ya no incluye :app).
 name: iOS Foundation (KMP shared)
 
 on:
@@ -29,21 +30,8 @@ jobs:
           java-version: "21"
           distribution: "temurin"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: "platform-tools platforms;android-37.0"
-
-      - name: Ensure Android 37 compatibility
-        run: |
-          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
-          test -n "$sdk_root"
-          test -d "$sdk_root/platforms/android-37.0"
-          if [ ! -e "$sdk_root/platforms/android-37" ]; then
-            ln -s "$sdk_root/platforms/android-37.0" "$sdk_root/platforms/android-37"
-          fi
-          ls -ld "$sdk_root/platforms/android-37" "$sdk_root/platforms/android-37.0"
-
+      # Fase 02A iOS-only: :shared ya no tiene target Android y settings ya
+      # no incluye :app/:innertube; configurar el proyecto no requiere SDK.
       - name: Set Up Gradle
         uses: gradle/actions/setup-gradle@v5
 
@@ -95,8 +83,8 @@ jobs:
           path: shared/build/bin/iosSimulatorArm64/debugFramework/MeldShared.framework
           if-no-files-found: warn
 
-  android-regression:
-    name: Android regression (:app)
+  shared-tests:
+    name: Shared logic tests (:shared jvmTest)
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -109,39 +97,28 @@ jobs:
           java-version: "21"
           distribution: "temurin"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: "platform-tools platforms;android-37.0"
-
-      - name: Ensure Android 37 compatibility
-        run: |
-          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
-          test -n "$sdk_root"
-          test -d "$sdk_root/platforms/android-37.0"
-          if [ ! -e "$sdk_root/platforms/android-37" ]; then
-            ln -s "$sdk_root/platforms/android-37.0" "$sdk_root/platforms/android-37"
-          fi
-          ls -ld "$sdk_root/platforms/android-37" "$sdk_root/platforms/android-37.0"
-
       - name: Set Up Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Run shared tests (JVM host for commonTest)
+        # Fase 02A: el target jvm/ existe solo para ejecutar aquí la lógica
+        # común (modelos + repositorio demo); no es plataforma destino.
+        run: >
+          ./gradlew :shared:jvmTest
+          -Dorg.gradle.jvmargs="-Xmx3g"
+          -Pkotlin.daemon.jvm.options="-Xmx3g"
 
-      - name: Generate Android debug keystore
-        run: |
-          mkdir -p "$HOME/.android"
-          keytool -genkeypair -noprompt -keystore "$HOME/.android/debug.keystore" -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-          test -f "$HOME/.android/debug.keystore"
-
-      - name: Assemble fossDebug (regression gate)
-        run: ./gradlew :app:assembleFossDebug
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-jvmTest-reports
+          path: shared/build/reports/tests/jvmTest
+          if-no-files-found: warn
 
       - name: Report result
         if: always()
-        run: 'echo "android-regression job outcome: ${{ job.status }}"'
+        run: 'echo "shared-tests job outcome: ${{ job.status }}"'
 
   ios-app:
     name: iOS app (MeldIOS.app, simulator)
@@ -157,21 +134,8 @@ jobs:
           java-version: "21"
           distribution: "temurin"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: "platform-tools platforms;android-37.0"
-
-      - name: Ensure Android 37 compatibility
-        run: |
-          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
-          test -n "$sdk_root"
-          test -d "$sdk_root/platforms/android-37.0"
-          if [ ! -e "$sdk_root/platforms/android-37" ]; then
-            ln -s "$sdk_root/platforms/android-37.0" "$sdk_root/platforms/android-37"
-          fi
-          ls -ld "$sdk_root/platforms/android-37" "$sdk_root/platforms/android-37.0"
-
+      # Fase 02A iOS-only: :shared ya no tiene target Android y settings ya
+      # no incluye :app/:innertube; configurar el proyecto no requiere SDK.
       - name: Set Up Gradle
         uses: gradle/actions/setup-gradle@v5
 
@@ -386,21 +350,8 @@ jobs:
           java-version: "21"
           distribution: "temurin"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: "platform-tools platforms;android-37.0"
-
-      - name: Ensure Android 37 compatibility
-        run: |
-          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
-          test -n "$sdk_root"
-          test -d "$sdk_root/platforms/android-37.0"
-          if [ ! -e "$sdk_root/platforms/android-37" ]; then
-            ln -s "$sdk_root/platforms/android-37.0" "$sdk_root/platforms/android-37"
-          fi
-          ls -ld "$sdk_root/platforms/android-37" "$sdk_root/platforms/android-37.0"
-
+      # Fase 02A iOS-only: :shared ya no tiene target Android y settings ya
+      # no incluye :app/:innertube; configurar el proyecto no requiere SDK.
       - name: Set Up Gradle
         uses: gradle/actions/setup-gradle@v5
 

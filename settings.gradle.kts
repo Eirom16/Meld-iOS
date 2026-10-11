@@ -37,7 +37,8 @@ dependencyResolutionManagement {
 }
 
 // F-Droid doesn't support foojay-resolver plugin
+// Fase 02A iOS-only: app/ e innertube/ permanecen en disco como referencia
+// histórica, pero fuera de la configuración activa (sin target Android,
+// sin regresión :app:assembleFossDebug en el pipeline iOS).
 rootProject.name = "Metrolist"
-include(":app")
-include(":innertube")
 include(":shared")
