@@ -265,12 +265,167 @@ jobs:
           echo "isolation step done (never fails the job)"
           exit 0
 
+      - name: XcodeGen spec bisection (V1-V5)
+        # FIX02 ciclo 2: genera 5 variantes con el MISMO binario para aislar
+        # la opción que dispara el fatalError. Nunca falla el job (exit 0):
+        # el árbitro es el artifact xcodegen-isolation, no el exit code.
+        # V1: Mini con 1 sola config Debug (sospechoso nº1).
+        # V2: Mini + settings.base exacto del proyecto real.
+        # V3: Mini + preBuildScripts exacto del proyecto real.
+        # V4: Mini + sources excludes + info.plist.
+        # V5: copia real de iosApp + config Release añadida (candidato fix).
+        run: |
+          set -uo pipefail
+          bis="$RUNNER_TEMP/xcbis"
+          logs="$GITHUB_WORKSPACE/xcbis-logs"
+          rm -rf "$bis" "$logs"
+          mkdir -p "$bis/V1/Hello" "$bis/V2/Hello" "$bis/V3/Hello" "$bis/V4/Hello" "$bis/V5" "$logs"
+          for v in V1 V2 V3 V4; do printf 'print("hi")\n' > "$bis/$v/Hello/dummy.swift"; done
+          cp "$GITHUB_WORKSPACE/iosApp/MeldIOS/Info.plist" "$bis/V4/Hello/Info.plist"
+          cp -R "$GITHUB_WORKSPACE/iosApp/." "$bis/V5/"
+          cat > "$bis/V1/project.yml" <<'SPEC_EOF_V1'
+          name: V1SingleConfig
+          options:
+            deploymentTarget:
+              iOS: "16.0"
+          configs:
+            Debug: debug
+          targets:
+            V1:
+              type: application
+              platform: iOS
+              deploymentTarget: "16.0"
+              sources:
+                - path: Hello
+          schemes:
+            V1:
+              build:
+                targets:
+                  V1: all
+              run:
+                config: Debug
+          SPEC_EOF_V1
+          cat > "$bis/V2/project.yml" <<'SPEC_EOF_V2'
+          name: V2Settings
+          options:
+            deploymentTarget:
+              iOS: "16.0"
+          configs:
+            Debug: debug
+            Release: release
+          targets:
+            V2:
+              type: application
+              platform: iOS
+              deploymentTarget: "16.0"
+              sources:
+                - path: Hello
+              settings:
+                base:
+                  PRODUCT_BUNDLE_IDENTIFIER: com.eirom16.meldios
+                  PRODUCT_NAME: MeldIOS
+                  CODE_SIGNING_ALLOWED: NO
+                  CODE_SIGN_IDENTITY: ""
+                  DEVELOPMENT_TEAM: ""
+                  CODE_SIGNING_REQUIRED: NO
+                  ENABLE_USER_SCRIPT_SANDBOXING: NO
+                  ONLY_ACTIVE_ARCH: YES
+                  FRAMEWORK_SEARCH_PATHS: $(inherited) $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
+                  OTHER_LDFLAGS: $(inherited) -framework MeldShared
+          schemes:
+            V2:
+              build:
+                targets:
+                  V2: all
+              run:
+                config: Debug
+          SPEC_EOF_V2
+          cat > "$bis/V3/project.yml" <<'SPEC_EOF_V3'
+          name: V3Scripts
+          options:
+            deploymentTarget:
+              iOS: "16.0"
+          configs:
+            Debug: debug
+            Release: release
+          targets:
+            V3:
+              type: application
+              platform: iOS
+              deploymentTarget: "16.0"
+              sources:
+                - path: Hello
+              preBuildScripts:
+                - name: Compile Kotlin Framework
+                  basedOnDependencyAnalysis: false
+                  script: |
+                    if [ "YES" = "$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED" ]; then
+                      echo "Skipping Gradle build (IDE already built the framework)"
+                      exit 0
+                    fi
+                    "$SRCROOT/../gradlew" -p "$SRCROOT/.." :shared:embedAndSignAppleFrameworkForXcode -Dorg.gradle.jvmargs="-Xmx3g" -Pkotlin.daemon.jvm.options="-Xmx3g"
+          schemes:
+            V3:
+              build:
+                targets:
+                  V3: all
+              run:
+                config: Debug
+          SPEC_EOF_V3
+          cat > "$bis/V4/project.yml" <<'SPEC_EOF_V4'
+          name: V4Info
+          options:
+            deploymentTarget:
+              iOS: "16.0"
+          configs:
+            Debug: debug
+            Release: release
+          targets:
+            V4:
+              type: application
+              platform: iOS
+              deploymentTarget: "16.0"
+              sources:
+                - path: Hello
+                  excludes:
+                    - Info.plist
+              info:
+                path: Hello/Info.plist
+          schemes:
+            V4:
+              build:
+                targets:
+                  V4: all
+              run:
+                config: Debug
+          SPEC_EOF_V4
+          awk '/^  Debug: debug$/{print; print "  Release: release"; next}1' "$bis/V5/project.yml" > "$bis/V5/project.yml.new"
+          mv "$bis/V5/project.yml.new" "$bis/V5/project.yml"
+          grep -n -A3 "^configs:" "$bis/V5/project.yml"
+          : > "$logs/summary.txt"
+          set +e
+          for v in V1 V2 V3 V4 V5; do
+            echo "=== $v ==="
+            ( cd "$bis/$v" && xcodegen generate >"$logs/$v.log" 2>&1; echo "$?" >"$bis/$v.code" )
+            code="$(cat "$bis/$v.code")"
+            echo "$v exit: $code"
+            echo "$v=$code" >> "$logs/summary.txt"
+            echo "--- $v tail ---"
+            tail -n 5 "$logs/$v.log" || true
+          done
+          echo "=== summary ==="
+          cat "$logs/summary.txt"
+          echo "bisection step done (never fails the job)"
+          exit 0
+
       - name: Upload XcodeGen isolation log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: xcodegen-isolation
-          path: xcodegen-minimal.log
+          path: |
+            xcodegen-minimal.log
+            xcbis-logs/
           if-no-files-found: warn
 
       - name: Generate Xcode project

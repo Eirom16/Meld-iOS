@@ -23,6 +23,19 @@ Contexto: run #6 (`actions/runs/37985938502`, commit `70b3f02b`): `ios-framework
 - Mínimo FAIL → H1 (binario/runner): ciclo 2 = investigar alternativa (herramienta o `.xcodeproj` versionado desde macOS válido, sin inventar internos, conservando host SwiftUI + MeldShared + Xcode 26.4.1).
 - Ambos PASS → el crash era dependiente de versión/entorno ya superado; continuar a `xcodebuild`.
 
+## FIX02.3 Veredicto ciclo 1 (run #7 `actions/runs/38165060516`, commit `6e4d8afe`)
+
+- Host: macOS 26.6.2 (25G83), runner arm64. Binario: Mach-O universal x86_64+arm64, `Version: 2.45.4`, nativo.
+- Mínimo: exit **0**, `Created project at .../Mini.xcodeproj`. Real: exit **133** (sin cambios).
+- `ios-framework` SUCCESS, `android-regression` SUCCESS (los dos jobs que funcionan, intactos).
+- **H1 refutada, H2 confirmada**: el crash lo dispara alguna opción de `iosApp/project.yml`. La única diferencia estructural ya exonerada es `deploymentTarget` en el target (el Mini la incluía y pasó).
+
+## FIX02.4 Plan ciclo 2 (bisección V1–V5 en un solo job, sin cambios de spec real)
+
+- Nuevo paso `XcodeGen spec bisection (V1-V5)` tras el test mínimo: genera 5 variantes con el mismo binario (V1 = 1 sola config Debug; V2 = settings.base exacto; V3 = preBuildScripts exacto; V4 = excludes+info.plist; V5 = copia real de `iosApp/` + `Release: release` vía `awk`, verificado localmente: solo añade esa línea), recoge `summary.txt` y nunca falla el job.
+- Upload `xcodegen-isolation` ampliado a `xcodegen-minimal.log` + `xcbis-logs/` (`if: always()`).
+- Lectura: si V1 FAIL y V5 PASS → fix = añadir config Release (ciclo 3). Si falla V2/V3/V4 → el fix ataca esa opción. Si todo PASS salvo el real → combinación de factores; re-bisectar.
+
 ---
 
 # FASE 01B-FIX01 — Corregir fallo de XcodeGen en GitHub Actions

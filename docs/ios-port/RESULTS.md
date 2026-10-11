@@ -24,7 +24,11 @@ Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `70b3f02b` + commit de a
 
 ## FIX02.3 Veredicto ciclo 1
 
-PENDING_CI: a la espera del run. Registrar aquí: run id, `minimal exit code`, `xcodegen exit code`, y rama H1/H2 según REPORT §FIX02.2.
+Run #7 (`actions/runs/38165060516`, commit `6e4d8afe`): `minimal exit code: 0` (`Created project Mini.xcodeproj`, artifact `xcodegen-isolation` con `xcodegen-minimal.log` de 162 bytes) frente a `xcodegen exit code: 133` del proyecto real. Binario universal x86_64+arm64 sobre macOS 26.6.2. `ios-framework` y `android-regression` SUCCESS. **H1 refutada, H2 confirmada.**
+
+## FIX02.4 Ciclo 2: bisección V1–V5 (mismo commit que este informe)
+
+Añadidos pasos `XcodeGen spec bisection (V1-V5)` + upload ampliado en `ios-app`. Validaciones locales: `bash -n` OK, `yaml.safe_load` OK (18 steps), los 4 specs embebidos parsean con la estructura prevista (V1 1 config; V2 settings con las 10 claves exactas; V3 script con `$SRCROOT`/`OVERRIDE_KOTLIN` intactos; V4 excludes+info), transformada `awk` de V5 verificada (solo añade `Release: release`), `git diff --check` limpio. PENDING_CI: registrar `summary.txt` (V1..V5) y decidir el fix del ciclo 3.
 
 ---
 
