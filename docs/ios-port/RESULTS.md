@@ -28,7 +28,18 @@ Run #7 (`actions/runs/38165060516`, commit `6e4d8afe`): `minimal exit code: 0` (
 
 ## FIX02.5 Ciclo 3: fix de una línea + verificación final (mismo commit que este informe)
 
-Evidencia de bisección (run #8, `38165963313`, artifact descargado con `gh run download`): `summary.txt` = `V1=133, V2=0, V3=0, V4=0, V5=0`; V1 reproduce la firma (59 bytes, 2 líneas ⚙️), V5 produce `MeldIOS.xcodeproj` desde el spec real + Release. Cambio: `iosApp/project.yml` +`Release: release` (+ comentario FIX02); workflow: bisección retirada, test mínimo + upload simple conservados. Validaciones locales: `yaml.safe_load` OK (17 steps, sin bisección), `configs: {Debug, Release}`, `git diff --check` limpio. PENDING_CI (ciclo 3/3): el verde de `Generate Xcode project` + `xcodebuild` dictamina el Caso A.
+Evidencia de bisección (run #8, `38165963313`, artifact descargado con `gh run download`): `summary.txt` = `V1=133, V2=0, V3=0, V4=0, V5=0`; V1 reproduce la firma (59 bytes, 2 líneas ⚙️), V5 produce `MeldIOS.xcodeproj` desde el spec real + Release. Cambio: `iosApp/project.yml` +`Release: release` (+ comentario FIX02); workflow: bisección retirada, test mínimo + upload simple conservados. Validaciones locales: `yaml.safe_load` OK (17 steps, sin bisección), `configs: {Debug, Release}`, `git diff --check` limpio.
+
+## FIX02.6 Resultados ciclo 3 (run #9 `38166146096`, commit `df3a1867`)
+
+| Paso `ios-app` | Resultado |
+|---|---|
+| `Generate Xcode project` | SUCCESS (`xcodegen exit code: 0`, `Created project .../iosApp/MeldIOS.xcodeproj`) |
+| `List schemes` | SUCCESS |
+| `Build MeldIOS.app (simulator, unsigned)` | FAIL en `Compile Kotlin Framework`: `ARCHS=arm64 x86_64` → `:shared:compileKotlinIosX64` → `No matching variant ... native.target=ios_x64` (CMP 1.12.1 sin artefactos iosX64) |
+| `ios-framework` / `android-regression` | SUCCESS / SUCCESS |
+
+Conclusión: objetivo FIX02 (proyecto válido) CUMPLIDO; objetivo 01B (`.app` compilada, todo PASS) NO cumplido → Caso B. Siguiente fix propuesto (no aplicado, cupo 3/3 agotado): retirar `iosX64()` de `shared/build.gradle.kts` (Tier-3, sin valor en runners arm64) y/o destino de simulador específico arm64. Requiere autorización nueva (cualquier push dispara CI).
 
 ## FIX02.4 Ciclo 2: bisección V1–V5 (ejecutada en run #8)
 

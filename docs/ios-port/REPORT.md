@@ -48,6 +48,13 @@ Bisección run #8 (`actions/runs/38165963313`, commit `4c6ba525`), artifact `xco
 
 Causa: XcodeGen 2.45.4 hace `fatalError` (SIGTRAP, exit 133, sin validación ni crash report) al generar un spec de **una sola configuración**. Settings, scripts, excludes e info quedan exonerados. Fix: `Release: release` en `iosApp/project.yml` (una línea + comentario; idéntico a lo probado en V5). La compilación sigue usando `-configuration Debug`; Release solo completa el modelo. Bisección retirada del workflow (misión cumplida); se conserva el test mínimo como canario de runner. Sin plan alternativo necesario salvo que el `xcodebuild` posterior revele un bloqueo nuevo.
 
+## FIX02.6 Veredicto ciclo 3 (run #9 `actions/runs/38166146096`, commit `df3a1867`)
+
+- `Generate Xcode project`: exit **0**, `Created project at .../iosApp/MeldIOS.xcodeproj`. `List schemes`: SUCCESS. **Bloqueo XcodeGen RESUELTO y verificado en CI.**
+- `Build MeldIOS.app`: xcodebuild arranca pero falla en `PhaseScriptExecution Compile Kotlin Framework` → `:shared:compileKotlinIosX64` → `No matching variant of org.jetbrains.compose.{runtime,foundation,ui}:1.12.1 ... 'org.jetbrains.kotlin.native.target' with value 'ios_x64'`. Causa nueva, distinta capa: `-destination 'generic/platform=iOS Simulator'` fija `ARCHS=arm64 x86_64` y la tarea `embedAndSignAppleFrameworkForXcode` intenta compilar el slice x86_64, pero CMP 1.12.1 no publica artefactos `iosX64` (target Tier-3/deprecado, heredado de 01A).
+- `ios-framework` y `android-regression`: SUCCESS.
+- Cupo de 3 ciclos CI agotado: el fix (retirar `iosX64()` de `shared/` y/o fijar destino a un simulador arm64 concreto) queda documentado como siguiente paso con autorización nueva. **01B permanece BLOCKED** (sin `MeldIOS.app`, no todos los jobs PASS): Caso B.
+
 ---
 
 # FASE 01B-FIX01 — Corregir fallo de XcodeGen en GitHub Actions

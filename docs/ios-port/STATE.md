@@ -1,8 +1,8 @@
 # STATE.md — Estado de continuidad del port Meld → iOS
 
-Última actualización (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `4c6ba525` + commit FIX02-ciclo3 · `git diff --check` limpio.
+Última actualización (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `df3a1867` (remoto al día) + commit local de informes pendiente de push autorizado · `git diff --check` limpio.
 
-> 01B-FIX02 ciclo 3/3 (2026-10-11): bisección concluyente (run #8: `V1=133, V2=0, V3=0, V4=0, V5=0`) — causa = spec de 1 sola config; fix = `Release: release` en `iosApp/project.yml` (probado en V5: genera `MeldIOS.xcodeproj`). Bisección retirada; test mínimo conservado como canario. 01B sigue **BLOCKED** hasta el verde de generate+xcodebuild. Decisión xtool: macOS principal, sin Darwin SDK en Linux, xtool auxiliar/experimental, KMP+CMP conservados, sin migración a Swift puro (ver REPORT §FIX02.0).
+> 01B-FIX02 CERRADO (3/3 ciclos, 2026-10-11): XcodeGen RESUELTO — run #9 genera `MeldIOS.xcodeproj` (exit 0) y lista schemes. Nuevo bloqueo en `xcodebuild` (capa Kotlin, fuera de cupo): `ARCHS=arm64 x86_64` genérico → `:shared:compileKotlinIosX64` sin variantes CMP 1.12.1 para `ios_x64`. 01B sigue **BLOCKED** (Caso B). Next propuesto: retirar `iosX64()` y/o destino arm64 específico — requiere autorización (cualquier push dispara CI). Decisión xtool: macOS principal, sin Darwin SDK en Linux, xtool auxiliar/experimental, KMP+CMP conservados, sin migración a Swift puro (ver REPORT §FIX02.0).
 
 ## 1. Objetivo general
 
@@ -37,7 +37,7 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 ## 5. Bloqueos abiertos
 
 - CI pendiente: subir `feat/ios-foundation` y reportar el job `ios-app` (y re-verde de los otros dos). FIX01 aplicado: si `xcodegen-diagnostics` aparece, revisar log + `.ips` antes de tocar el spec.
-- FIX02 ciclo 1 en CI: registrar `minimal exit code` (artifact `xcodegen-isolation`) + `xcodegen exit code` del proyecto real; decidir H1 (binario/runner → plan alternativo sin inventar `.xcodeproj`) o H2 (spec → bisección, sospechoso nº1: 1 sola config Debug).
+- FIX02 cerrado: XcodeGen genera en CI (exit 0, run #9). Nuevo bloqueo `xcodebuild`: slice `iosX64` sin variantes CMP → next fix retirar `iosX64()` y/o destino arm64 específico (pendiente de autorización; no tocar `app/`/`innertube/`).
 - Incógnita menor: nombre exacto del símbolo Swift si la regla de facade difiriera (el grep de CI lo dictamina con candidatos en el log).
 - XcodeGen latest: si una versión futura rompe `project.yml`, fijar versión.
 - B2 InnerTubeX · B3 OkHttp · B4 `SpotifyAuth` JVM-only · B6 migraciones Room (fuera de alcance hasta Fase 02).
