@@ -1,3 +1,21 @@
+# FASE 01B-FIX03 — Forzar simulador arm64 para evitar el slice iosX64 (autonomía GitHub, máx. 3 ciclos CI)
+
+Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `812a9767` (remoto `df3a1867` + commit local documental conservado) · Estado: IN_PROGRESS, ciclo CI 1/3.
+
+Contexto: run #9 (`actions/runs/38166146096`, commit `df3a1867`): XcodeGen PASS (`xcodegen exit code: 0`, `Created project .../MeldIOS.xcodeproj`), `List schemes` PASS, `ios-framework` PASS, `android-regression` PASS, `Build MeldIOS.app` FAIL en `PhaseScriptExecution Compile Kotlin Framework` → `:shared:compileKotlinIosX64` → `No matching variant of org.jetbrains.compose.{runtime,foundation,ui}:1.12.1 ... 'org.jetbrains.kotlin.native.target' with value 'ios_x64'`. Evidencia del log: el destino genérico fija `ARCHS=arm64 x86_64` (`VALID_ARCHS=arm64 x86_64`, `SDK_NAME=iphonesimulator26.4`, `CONFIGURATION=Debug`) y la tarea `embedAndSignAppleFrameworkForXcode` intenta compilar el slice x86_64; CMP 1.12.1 no publica artefactos `ios_x64` (target Tier-3/deprecado, heredado de 01A). Aviso adicional en el log: `iosX64Test ... cannot run on the current host (macos-aarch64) ... architecture mismatch`.
+
+## FIX03.1 Corrección ciclo 1 (solo paso `Build MeldIOS.app`; resto intacto)
+
+- `xcodebuild` añade override `ARCHS=arm64` (línea de comando, gana sobre el genérico): `-destination 'generic/platform=iOS Simulator' -derivedDataPath iosApp/build ARCHS=arm64 CODE_SIGNING_ALLOWED=NO build`. Configuración Debug mantenida. El script Kotlin debe recibir `CONFIGURATION=Debug`, `SDK_NAME` de simulador y `ARCHS=arm64`, seleccionando `iosSimulatorArm64` en lugar de `iosX64`.
+- Sin cambios en este intento: `iosX64()` se conserva en `shared/build.gradle.kts`; versiones de Kotlin/Compose/Gradle intactas; compilación `iosArm64` de dispositivo intacta (job `ios-framework`); resto de pasos del job `ios-app` intactos.
+- Lectura prevista: si el error `ios_x64` desaparece, continuar la compilación completa de `MeldIOS.app`; si aparece otro error, tratarlo como bloqueo independiente; si `ARCHS=arm64` no evita `iosX64`, el siguiente paso es retirar `iosX64()` del módulo `shared` (alcance actual: simulador ARM64 + dispositivo ARM64), justificado en la documentación.
+
+## FIX03.2 Veredicto ciclo 1
+
+PENDING_CI → registrar run id, resultado de `xcodebuild`, presencia de `MeldIOS.app`, header `MeldShared.h` y artifacts abajo tras la ejecución. Cupo: 1/3 consumido con este push (incluye el commit documental `812a9767` pendiente, no pusheado en solitario).
+
+---
+
 # FASE 01B-FIX02 — Aislar el crash de XcodeGen (autonomía GitHub, máx. 3 ciclos CI)
 
 Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `70b3f02b` · Estado: IN_PROGRESS, ciclo CI 1/3.

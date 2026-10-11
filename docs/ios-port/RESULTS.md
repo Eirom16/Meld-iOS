@@ -1,3 +1,31 @@
+# FASE 01B-FIX03 — Forzar ARCHS=arm64 (ciclo 1/3)
+
+Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `812a9767` + fix workflow · Autonomía GitHub activa (este push publica el commit documental pendiente junto con la corrección; 1 ciclo CI consumido de 3).
+
+## FIX03.1 Comandos ejecutados
+
+| # | Comando | Resultado |
+|---|---|---|
+| 1 | Lectura `AGENTS.md` + `docs/ios-port/{REPORT,RESULTS,STATE}.md` + `git branch/HEAD/log/status` + diff `.gitignore` + `gh run list` | PASS. Rama `feat/ios-foundation` @ `812a9767` (1 commit sobre `origin/feat-ios-foundation` conservado); único `M` preexistente: `.gitignore` (se conserva fuera del commit); run #9 confirmado como base |
+| 2 | `gh run view 38166146096 --log-failed` (evidencia `ARCHS`/`ios_x64`) | PASS. `ARCHS=arm64 x86_64`, `SDK_NAME=iphonesimulator26.4`, `CONFIGURATION=Debug` → `:shared:compileKotlinIosX64` → `No matching variant ... native.target=ios_x64` (runtime/foundation/ui 1.12.1) + aviso `iosX64Test ... architecture mismatch` en host `macos-aarch64` |
+| 3 | Edición workflow: paso `Build MeldIOS.app` + `ARCHS=arm64` (+ comentario FIX03) | PASS. `shared/build.gradle.kts` intacto (`iosX64()` conservado en este intento); versiones intactas; `iosArm64` intacto |
+| 4 | `yaml.safe_load` del workflow + `git diff --check` | PASS. 17 steps en `ios-app`; diff limpio |
+| 5 | Commit + push a `feat/ios-foundation` (este ciclo) | PENDING → registrar run id y veredicto abajo tras la ejecución |
+| 6 | Actualización `REPORT/RESULTS/STATE.md` | PASS, mismo commit (evita push solo-docs) |
+
+## FIX03.2 Archivos modificados (ciclo 1)
+
+- MODIFICADO: `.github/workflows/ios-foundation.yml` (paso `Build MeldIOS.app`: override `ARCHS=arm64`).
+- ACTUALIZADO: `docs/ios-port/{REPORT,RESULTS,STATE}.md`.
+- Sin tocar: `shared/build.gradle.kts`, `iosApp/project.yml`, Kotlin/Compose/Gradle, `app/`, `innertube/`, resto de workflows.
+- Preexistente sin commitear: `.gitignore` (append 01B; se conserva fuera del commit, sin revisar en este ciclo).
+
+## FIX03.3 Veredicto ciclo 1
+
+PENDING_CI. Criterios: `ios-framework` PASS, `android-regression` PASS, XcodeGen PASS, `xcodebuild` PASS, `MeldIOS.app` existente, `MeldShared.framework` integrado, `mainViewController` en header, artifact `MeldIOS-simulator-app` publicado. Si `ARCHS=arm64` no evita `iosX64`, ciclo 2 = retirar `iosX64()` de `shared/` con justificación.
+
+---
+
 # FASE 01B-FIX02 — Resultados de aislamiento (ciclo 1/3)
 
 Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `70b3f02b` + commit de aislamiento · Autonomía GitHub activa (commit+push a la rama, 1 ciclo CI consumido de 3).

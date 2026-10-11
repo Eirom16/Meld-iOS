@@ -310,12 +310,18 @@ jobs:
         run: 'xcodebuild -list -project iosApp/MeldIOS.xcodeproj'
 
       - name: Build MeldIOS.app (simulator, unsigned)
+        # FIX03: el destino genérico fija ARCHS=arm64 x86_64 y la tarea
+        # embedAndSignAppleFrameworkForXcode intenta compilar el slice iosX64,
+        # sin variantes CMP 1.12.1 para ios_x64 (run #9). Se fuerza ARCHS=arm64
+        # para que el script Kotlin seleccione iosSimulatorArm64. Debug se mantiene;
+        # iosArm64 de dispositivo no se altera (job ios-framework intacto).
+        # iosX64() se conserva en shared/ en este primer intento.
         run: >
           xcodebuild -project iosApp/MeldIOS.xcodeproj
           -scheme MeldIOS -configuration Debug
           -destination 'generic/platform=iOS Simulator'
           -derivedDataPath iosApp/build
-          CODE_SIGNING_ALLOWED=NO build
+          ARCHS=arm64 CODE_SIGNING_ALLOWED=NO build
 
       - name: Verify MeldShared export in generated header
         run: |
