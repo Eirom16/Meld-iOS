@@ -1,3 +1,35 @@
+# FASE 01C — Primer IPA para iPhone físico (autonomía GitHub, máx. 3 ciclos CI)
+
+Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `9e0e511b` (run #12 `38169795066` con los 3 jobs SUCCESS como base) · Estado: IMPLEMENTED, PENDING_CI, ciclo CI 1/3.
+
+Contexto: 01B VERIFIED (run #11 `38168783902`): `MeldIOS.app` de simulador compila (`ARCHS=arm64` + `MainViewControllerKt.MainViewController()`). 01C añade el cuarto job `ios-device-ipa` sin tocar los tres existentes.
+
+## 01C.1 Estrategia de archive
+
+- `xcodebuild archive` con `-destination 'generic/platform=iOS'`, `-sdk implícito iphoneos`, `ARCHS=arm64`, `CODE_SIGNING_ALLOWED=NO` + `CODE_SIGN_IDENTITY=""` + `CODE_SIGNING_REQUIRED=NO`, `-configuration Debug`, `-archivePath iosApp/build/device/MeldIOS.xcarchive`, `-derivedDataPath iosApp/build/device/DerivedData` (bajo `iosApp/build/`, ya ignorado en `.gitignore`).
+- `SDK_NAME=iphoneos` hace que `embedAndSignAppleFrameworkForXcode` seleccione **iosArm64** (nunca iosSimulatorArm64/iosX64); `project.yml` y `shared/build.gradle.kts` intactos (incl. `iosX64()` declarado y config Release).
+- Fallback reproducible en el mismo paso: si `archive` rechazara la falta de firma, `xcodebuild -sdk iphoneos ... build` (misma config/flags) y el empaquetado usa `DerivedData/Build/Products/Debug-iphoneos/MeldIOS.app`. El paso `Locate` acepta ambas rutas y falla en voz alta si no hay `.app`.
+
+## 01C.2 Procedimiento de empaquetado
+
+- Sin `exportArchive` (exige firma): `ditto` del `.app` a `ipa-staging/Payload/MeldIOS.app`, `chmod +x` del ejecutable, `zip -qry ../MeldIOS-unsigned-device.ipa Payload`.
+- Salida: `iosApp/build/device/MeldIOS-unsigned-device.ipa`. Sin simulador, sin cachés Gradle, sin fuentes, sin SDKs, sin credenciales.
+
+## 01C.3 Validación Mach-O y estructural (12 comprobaciones, el job falla si alguna crítica falla)
+
+1. IPA existe y no vacío · 2. `unzip -t` válido · 3. contiene `Payload/MeldIOS.app/` · 4. ejecutable `CFBundleExecutable` presente y con bit +x · 5. `lipo -info` = arm64 sin slice x86_64 (+ `file`) · 6. `vtool -show-build`: plataforma iOS dispositivo (nombre `IOS` o número `2`; `IOSSIMULATOR`/`7` = FAIL) · 7. `CFBundleIdentifier = com.eirom16.meldios` (PlistBuddy) · 8. `minos = 16.0` · 9. `Info.plist` y recursos presentes · 10. MeldShared estático (`otool -L` sin referencia, sin `Frameworks/MeldShared.framework` embebido) · 11. sin firma (`codesign -dv` debe fallar) · 12. sin `DerivedData/.gradle/iphonesimulator/x86_64//build/` en el ZIP.
+- Informe `device-ipa-validation.txt` (arquitectura, plataforma, bundle ID, tamaño, SHA-256, estado de firma) como segundo artifact.
+
+## 01C.4 Publicación y regresión
+
+- Artifacts: `MeldIOS-unsigned-device-ipa` (el `.ipa`, `if-no-files-found: error`) + `MeldIOS-device-validation` (el informe). Sin releases. Jobs `ios-framework`, `android-regression`, `ios-app` intactos (mismo XcodeGen 2.45.4 + SHA, mismo Xcode 26.4.1, mismas versiones Kotlin/Compose/Gradle). Sin tocar `app/`, `innertube/` ni la interfaz de Meld.
+
+## 01C.5 Veredicto ciclo 1
+
+PENDING → registrar run id, tamaños/SHA y resultado de los 4 jobs tras la ejecución.
+
+---
+
 # FASE 01B-FIX03 — Forzar simulador arm64 para evitar el slice iosX64 (autonomía GitHub, máx. 3 ciclos CI)
 
 Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `812a9767` (remoto `df3a1867` + commit local documental conservado) · Estado: IN_PROGRESS, ciclo CI 1/3.

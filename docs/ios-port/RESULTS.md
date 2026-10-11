@@ -1,3 +1,30 @@
+# FASE 01C — Implementación del job de IPA (ciclo 1/3)
+
+Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `9e0e511b` + commit 01C · Autonomía GitHub activa (commit+push a la rama, 1 ciclo CI consumido de 3).
+
+## 01C.1 Comandos ejecutados
+
+| # | Comando | Resultado |
+|---|---|---|
+| 1 | Lectura `AGENTS.md` + `docs/ios-port/{REPORT,RESULTS,STATE}.md` + workflow + `project.yml` + `Info.plist` + `shared/build.gradle.kts` + `git branch/HEAD/status` + `gh run list/view` | PASS. HEAD `9e0e511b` en sync con remoto; run #12 (`38169795066`) con 3 jobs SUCCESS; único `M` preexistente: `.gitignore` (se conserva fuera del commit) |
+| 2 | Edición workflow: nuevo job `ios-device-ipa` (16 steps) | PASS. Los 3 jobs existentes intactos; sin cambios de versiones ni en `app/`/`innertube/` |
+| 3 | `ruby/yaml` → `uv run --with pyyaml` + `bash -n` de los 10 bloques `run:` + `git diff --check` | PASS. 4 jobs; `bash -n` OK en los 10 bloques; diff limpio |
+| 4 | Actualización `REPORT/RESULTS/STATE.md` | PASS, mismo commit (evita ciclos CI extra) |
+| 5 | Commit + push a `feat/ios-foundation` (este ciclo) | PENDING → registrar run id y veredicto abajo tras la ejecución |
+
+## 01C.2 Archivos modificados (ciclo 1)
+
+- MODIFICADO: `.github/workflows/ios-foundation.yml` (solo job nuevo `ios-device-ipa`).
+- ACTUALIZADO: `docs/ios-port/{REPORT,RESULTS,STATE}.md`.
+- Sin tocar: `shared/build.gradle.kts`, `iosApp/project.yml`, `ContentView.swift`, Kotlin/Compose/Gradle/XcodeGen, `app/`, `innertube/`, resto de workflows.
+- Preexistente sin commitear: `.gitignore` (append 01B; se conserva fuera del commit).
+
+## 01C.3 Veredicto ciclo 1
+
+PENDING_CI → completar tras la ejecución (4 jobs, IPA, validación, tamaño/SHA-256).
+
+---
+
 # FASE 01B-FIX03 — Forzar ARCHS=arm64 (ciclo 1/3)
 
 Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `812a9767` + fix workflow · Autonomía GitHub activa (este push publica el commit documental pendiente junto con la corrección; 1 ciclo CI consumido de 3).
