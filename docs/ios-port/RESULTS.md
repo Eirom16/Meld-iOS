@@ -38,9 +38,20 @@ Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `812a9767` + fix workflo
 - Workflow: verify `grep -n "MainViewController"` + nuevo paso diagnóstico `Dump MeldShared header candidates` (`if: failure()`, vuelca `grep ViewController` del `MeldShared.h` real para no iterar a ciegas).
 - Sin tocar: versiones, targets (`iosX64()` sigue declarado), `iosArm64`, `app/`, `innertube/`, `project.yml`.
 
-## FIX03.5 Veredicto ciclo 2
+## FIX03.5 Veredicto ciclo 2 (run #11 `actions/runs/38168783902`) — ÉXITO
 
-PENDING_CI. Criterios: `ios-framework` PASS, `android-regression` PASS, XcodeGen PASS, `xcodebuild` PASS, `MeldIOS.app` existente, `MeldShared.framework` integrado, `MainViewController` en header, artifact `MeldIOS-simulator-app` publicado. Cupo tras este push: 2/3.
+| Criterio obligatorio | Resultado |
+|---|---|
+| 1. `ios-framework` PASS | SUCCESS |
+| 2. `android-regression` PASS | SUCCESS |
+| 3. XcodeGen PASS | `xcodegen exit code: 0` + `List schemes` SUCCESS |
+| 4. `xcodebuild` PASS | `** BUILD SUCCEEDED **` (`arm64-apple-ios16.0-simulator`, Debug) |
+| 5. `MeldIOS.app` existente | `Verify MeldIOS.app exists` PASS (`Debug-iphonesimulator/MeldIOS.app`) |
+| 6. `MeldShared.framework` integrado | `-framework MeldShared` en el enlazado; header en `shared/build/xcode-frameworks/Debug/iphonesimulator26.4/` |
+| 7. Símbolo en header | `+ (UIViewController *)MainViewController __attribute__((swift_name("MainViewController()")));` (línea 182) |
+| 8. Artifact publicado | `MeldIOS-simulator-app` (13.809.915 bytes, `if-no-files-found: error` superado) + framework (66.060.373 bytes) |
+
+Arquitectura compilada: **arm64 simulador** (app de simulador `Debug-iphonesimulator`, distinta de app para iPhone físico). Cupo consumido: 2/3. **Fase 01B: VERIFIED.** 01C no iniciada.
 
 ---
 

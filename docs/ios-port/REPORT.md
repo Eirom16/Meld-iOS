@@ -16,13 +16,15 @@ Contexto: run #9 (`actions/runs/38166146096`, commit `df3a1867`): XcodeGen PASS 
 - Nuevo bloqueo independiente (capa Swift, no Kotlin): `ContentView.swift:9:30: error: type 'MainViewControllerKt' has no member 'mainViewController'`. El facade `MainViewControllerKt` sí resuelve (framework compilado y enlazado); solo el miembro difiere: Kotlin/Native conserva el case del `fun MainViewController()` en el selector ObjC, luego el miembro Swift es `MainViewController()` (mayúscula), como en el template oficial `compose-multiplatform-ios-android-template` (`Main_iosKt.MainViewController()`).
 - Cupo: 1/3 consumido. Ciclo 2: llamada `MainViewControllerKt.MainViewController()` en `ContentView.swift`, grep del verify a `MainViewController`, + paso diagnóstico que vuelca los símbolos `ViewController` de `MeldShared.h` si el build vuelve a fallar.
 
-## FIX03.3 Veredicto ciclo 2
+## FIX03.3 Veredicto ciclo 2 (run #11 `actions/runs/38168783902`, commit `5f7a4a58`) — 01B VERIFIED
 
-PENDING_CI → registrar run id, resultado de `xcodebuild`, presencia de `MeldIOS.app`, header `MeldShared.h` y artifacts abajo tras la ejecución. Cupo: 2/3 consumido con este push.
-
----
-
-## FIX03.1 Corrección ciclo 1 (solo paso `Build MeldIOS.app`; resto intacto)
+- Los 3 jobs SUCCESS: `ios-framework`, `android-regression`, `ios-app` (conclusión `success`, 11m54s).
+- `Generate Xcode project`: `xcodegen exit code: 0`. `List schemes`: SUCCESS.
+- `Build MeldIOS.app`: `** BUILD SUCCEEDED **` (target `arm64-apple-ios16.0-simulator`, `-framework MeldShared` en el `Ld`, `CONFIGURATION=Debug`, `SDK_NAME=iphonesimulator26.4`).
+- `Verify MeldShared export`: header `shared/build/xcode-frameworks/Debug/iphonesimulator26.4/MeldShared.framework/Headers/MeldShared.h` con `+ (UIViewController *)MainViewController __attribute__((swift_name("MainViewController()")));` (línea 182) + `MainViewControllerKt` (línea 172).
+- `Verify MeldIOS.app exists`: PASS (`Debug-iphonesimulator/MeldIOS.app`).
+- Artifacts: `MeldIOS-simulator-app` (13.809.915 bytes) + `MeldShared-iosSimulatorArm64-framework` (66.060.373 bytes) + `xcodegen-isolation`, todos vigentes.
+- Error `ios_x64`: ELIMINADO (ciclo 1). Case Swift: RESUELTO (ciclo 2). Cupo consumido: 2/3. **Fase 01B: VERIFIED.** No iniciar 01C en esta sesión.
 
 ---
 
