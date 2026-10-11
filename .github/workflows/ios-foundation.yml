@@ -581,7 +581,9 @@ jobs:
           else
             pass "unsigned (no distribution signature)"
           fi
-          if unzip -l "$ipa" | grep -Ei "DerivedData|\.gradle|iphonesimulator|x86_64|/build/"; then
+          # -Z1 lista solo nombres de fichero (sin la cabecera "Archive: ...",
+          # que contiene la ruta local iosApp/build/... y falseaba el grep).
+          if unzip -Z1 "$ipa" | grep -Ei "DerivedData|\.gradle|iphonesimulator|x86_64|/build/"; then
             fail "ipa contains build junk or simulator artifacts"
           else
             pass "no build junk or simulator artifacts"

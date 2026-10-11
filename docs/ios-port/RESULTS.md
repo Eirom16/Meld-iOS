@@ -19,9 +19,31 @@ Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `9e0e511b` + commit 01C 
 - Sin tocar: `shared/build.gradle.kts`, `iosApp/project.yml`, `ContentView.swift`, Kotlin/Compose/Gradle/XcodeGen, `app/`, `innertube/`, resto de workflows.
 - Preexistente sin commitear: `.gitignore` (append 01B; se conserva fuera del commit).
 
-## 01C.3 Veredicto ciclo 1
+## 01C.3 Veredicto ciclo 1 (run #13 `actions/runs/38171331668`, commit `e978ba59`)
 
-PENDING_CI → completar tras la ejecución (4 jobs, IPA, validación, tamaño/SHA-256).
+| Criterio | Resultado |
+|---|---|
+| `ios-framework` / `android-regression` / `ios-app` | SUCCESS (regresión intacta) |
+| `ios-device-ipa`: XcodeGen + schemes + `archive` | PASS por la vía `archive` (xcarchive real; fallback no usado; `.app` desde `Products/Applications/`) |
+| Empaquetado `Payload/` + ZIP | PASS |
+| Validación | 11/12 PASS (`platform IOS` device, minos 16.0, sdk 26.4, arm64, bundle OK, estático, sin firma); check 12 FAIL espurio (grep casaba la cabecera `Archive:` de `unzip -l`) |
+
+Fix ciclo 2 (este push): check 12 con `unzip -Z1`. Cupo: 1/3 consumido.
+
+---
+
+## 01C.3 Veredicto ciclo 1 (run #13 `actions/runs/38171331668`, commit `e978ba59`)
+
+| Criterio | Resultado |
+|---|---|
+| `ios-framework` / `android-regression` / `ios-app` | SUCCESS / SUCCESS / SUCCESS (regresión intacta) |
+| XcodeGen + `List schemes` (job device) | PASS |
+| `xcodebuild archive` iphoneos arm64 sin firma | PASS por la vía `archive` (fallback `iphoneos build` no usado; `.app` desde `MeldIOS.xcarchive/Products/Applications/`) |
+| Empaquetado `Payload/` manual | PASS (`MeldIOS-unsigned-device.ipa` creado, ZIP válido) |
+| Validación 11/12 | PASS: arm64 sin x86_64, `platform IOS` (device, no simulador), minos 16.0 / sdk 26.4, bundle `com.eirom16.meldios`, MeldShared estático, sin firma |
+| Validación 12/12 (junk) | FAIL espurio: el `grep` sobre `unzip -l` casaba su propia cabecera `Archive: iosApp/build/...` (patrón `/build/`), no contenido real |
+
+Fix ciclo 2 (este push): comprobación 12 usa `unzip -Z1` (solo nombres de fichero, sin cabecera). Cupo consumido: 1/3.
 
 ---
 

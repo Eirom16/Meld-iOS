@@ -24,9 +24,12 @@ Contexto: 01B VERIFIED (run #11 `38168783902`): `MeldIOS.app` de simulador compi
 
 - Artifacts: `MeldIOS-unsigned-device-ipa` (el `.ipa`, `if-no-files-found: error`) + `MeldIOS-device-validation` (el informe). Sin releases. Jobs `ios-framework`, `android-regression`, `ios-app` intactos (mismo XcodeGen 2.45.4 + SHA, mismo Xcode 26.4.1, mismas versiones Kotlin/Compose/Gradle). Sin tocar `app/`, `innertube/` ni la interfaz de Meld.
 
-## 01C.5 Veredicto ciclo 1
+## 01C.5 Veredicto ciclo 1 (run #13 `actions/runs/38171331668`, commit `e978ba59`)
 
-PENDING → registrar run id, tamaños/SHA y resultado de los 4 jobs tras la ejecución.
+- `ios-framework` / `android-regression` / `ios-app`: SUCCESS (regresión intacta). Job `ios-device-ipa`: FAILURE solo en la validación.
+- `archive` iphoneos arm64 sin firma: PASS por la vía `archive` (xcarchive real, fallback no usado). Empaquetado `Payload/`: PASS. Validación 11/12 PASS (`platform IOS`, minos 16.0, sdk 26.4, arm64 sin x86_64, bundle OK, MeldShared estático, sin firma).
+- Check 12 FAIL espurio: el `grep` sobre `unzip -l` casaba su propia cabecera `Archive: iosApp/build/...` (patrón `/build/`), no contenido real.
+- Fix ciclo 2 (este push): comprobación 12 usa `unzip -Z1` (solo nombres de fichero, sin cabecera). Cupo consumido: 1/3.
 
 ---
 

@@ -2,7 +2,7 @@
 
 Última actualización (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `9e0e511b` + commit 01C pendiente de push · `git diff --check` limpio.
 
-> 01C EN CURSO (ciclo 1/3, 2026-10-11): job `ios-device-ipa` implementado (archive iphoneos arm64 sin firma + ZIP manual `Payload/` + 12 validaciones + 2 artifacts), PENDING_CI sobre la base del run #12 (3 jobs SUCCESS). 01B VERIFIED intacto.
+> 01C EN CURSO (ciclo 2/3, 2026-10-11): run #13 con 3 jobs SUCCESS + `archive` device OK + 11/12 validaciones PASS; check 12 FAIL espurio (grep sobre cabecera `unzip -l`), corregido con `unzip -Z1`, PENDING_CI. 01B VERIFIED intacto.
 
 > 01B-FIX03 CERRADO (2/3 ciclos, 2026-10-11): run #11 `38168783902` con los 3 jobs SUCCESS y `** BUILD SUCCEEDED **` (`arm64-apple-ios16.0-simulator`, Debug). `ARCHS=arm64` eliminó `ios_x64` (ciclo 1); `MainViewControllerKt.MainViewController()` resolvió el case Swift (ciclo 2, header línea 182). Artifacts `MeldIOS-simulator-app` (13,8 MB) + framework (66 MB) vigentes. 01B **VERIFIED**. 01C no iniciada. Conclusión FIX02 conservada: XcodeGen se mantiene porque ya funciona.
 
