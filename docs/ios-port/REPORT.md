@@ -1,3 +1,30 @@
+# FASE 01B-FIX02 — Aislar el crash de XcodeGen (autonomía GitHub, máx. 3 ciclos CI)
+
+Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `70b3f02b` · Estado: IN_PROGRESS, ciclo CI 1/3.
+
+Contexto: run #6 (`actions/runs/37985938502`, commit `70b3f02b`): `ios-framework` PASS, `android-regression` PASS, `ios-app` FAIL en `Generate Xcode project` con XcodeGen **2.45.4 fijado y verificado** (`xcodegen.zip: OK`, `Version: 2.45.4`) → `⚙️ Generating project...` → `xcodegen exit code: 133`, sin `DiagnosticReports` (directorio vacío) y `xcodegen.log` de 59 bytes (solo las dos líneas ⚙️). **Hipótesis de regresión de 2.46.0 refutada**: 2.45.4 aborta idénticamente. El binario sí ejecuta (`--version` OK), luego el crash es un `fatalError` en fase de generación del proyecto, no un binario inejecutable. Quedan dos hipótesis: (H1) incompatibilidad del binario con el runner `macos-26-arm64`/macOS 26.6.2, (H2) alguna opción de `iosApp/project.yml` dispara el `fatalError`.
+
+## FIX02.0 Decisión arquitectónica sobre xtool (investigación 1.21.0 concluida)
+
+- GitHub Actions macOS es el sistema principal para iOS; **no se instala Darwin SDK en Linux** (restricción de licencia Apple: prohibidos redistribuir/hostear SDKs y usarlos en hardware no Apple; además no hay distribución oficial de `darwin.xtoolsdk`).
+- **xtool queda como herramienta auxiliar y experimental**, fuera del camino crítico.
+- Se conservan Kotlin Multiplatform + Compose Multiplatform; **no se migra a Swift puro** (Kotlin/Native exige host macOS+Xcode para binarios Apple finales; xtool no lo sustituye).
+- Roadmap técnico: 01B (desbloquear `MeldIOS.app`) → 01C (IPA sideloading) → 02+ (transporte MP, modelos, Room/DataStore, player AVFoundation). Sin cambios en esta decisión salvo evidencia nueva.
+
+## FIX02.1 Corrección ciclo 1 (solo job `ios-app`; los otros dos intactos)
+
+- Nuevo paso `XcodeGen isolation test (minimal project)` **antes** de `Generate Xcode project`: imprime `sw_vers`, `which/file/lipo --version` del binario, crea un proyecto mínimo (`Mini`, 1 target application iOS, 2 configs, 1 fuente, 1 scheme) en `$RUNNER_TEMP` y ejecuta el **mismo binario** con `xcodegen generate`, guardando `xcodegen-minimal.log`. **Nunca falla el job** (`exit 0`): el árbitro es el artifact, no su exit code.
+- Nuevo paso `Upload XcodeGen isolation log` con `if: always()` (artifact `xcodegen-isolation`, `warn` si vacío).
+- Sin cambios en `project.yml`, versiones, ni en los jobs `ios-framework`/`android-regression`. Sin versiones arbitrarias.
+
+## FIX02.2 Lectura prevista del ciclo 1
+
+- Mínimo PASS + real FAIL → H2 (spec): ciclo 2 = bisección de opciones de `project.yml` (primero duplicar a 2 configs Debug+Release, principal sospechoso: proyecto de 1 sola config).
+- Mínimo FAIL → H1 (binario/runner): ciclo 2 = investigar alternativa (herramienta o `.xcodeproj` versionado desde macOS válido, sin inventar internos, conservando host SwiftUI + MeldShared + Xcode 26.4.1).
+- Ambos PASS → el crash era dependiente de versión/entorno ya superado; continuar a `xcodebuild`.
+
+---
+
 # FASE 01B-FIX01 — Corregir fallo de XcodeGen en GitHub Actions
 
 Fecha (UTC): 2026-10-09 · Rama `feat/ios-foundation` @ `c97f11ff` · Estado: IMPLEMENTED, PENDING_CI.

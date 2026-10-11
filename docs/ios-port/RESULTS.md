@@ -1,3 +1,33 @@
+# FASE 01B-FIX02 — Resultados de aislamiento (ciclo 1/3)
+
+Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `70b3f02b` + commit de aislamiento · Autonomía GitHub activa (commit+push a la rama, 1 ciclo CI consumido de 3).
+
+## FIX02.1 Comandos ejecutados
+
+| # | Comando | Resultado |
+|---|---|---|
+| 1 | Lectura `AGENTS.md` + `docs/ios-port/{REPORT,RESULTS,STATE}.md` + `git status/branch/log` + `gh auth status` | PASS. Rama `feat/ios-foundation`; único `M` preexistente: `.gitignore` (se conserva, no se commitea) |
+| 2 | `gh run list` + `gh run view 37985938502` (run #6) | PASS. `ios-framework` SUCCESS, `android-regression` SUCCESS, `ios-app` FAILURE en `Generate Xcode project` |
+| 3 | `gh run download` (artifacts `xcodegen-diagnostics`, framework) + `gh run view --log-failed` | PASS. Evidencia: `Version: 2.45.4`, `xcodegen.zip: OK`, `Generating project...` → exit 133, `DiagnosticReports` vacío, `xcodegen.log` 59 bytes |
+| 4 | Websearch XcodeGen (releases 2.45.4/2.46.0, homebrew stable=2.45.4) | PASS informativo. Sin evidencia de incompatibilidad conocida con macOS 26; sin cambios de versión |
+| 5 | Edición workflow: pasos `XcodeGen isolation test` + `Upload XcodeGen isolation log` en `ios-app` | PASS. Sin tocar `project.yml`, versiones ni los otros dos jobs |
+| 6 | `bash -n` del bloque + `yaml.safe_load` vía `uv run --with pyyaml` + `git diff --check` | PASS. 17 steps en orden; `project.yml` intacto (`MeldIOS`) |
+| 7 | Commit + push a `feat/ios-foundation` (este ciclo) | PENDING → registrar run id y veredicto abajo tras la ejecución |
+| 8 | Actualización `REPORT/RESULTS/STATE.md` (este fichero y los otros dos) | PASS, mismo commit (evita ciclos CI extra por pushes solo-docs) |
+
+## FIX02.2 Archivos modificados (ciclo 1)
+
+- MODIFICADO: `.github/workflows/ios-foundation.yml` (+2 pasos en `ios-app`).
+- ACTUALIZADO: `docs/ios-port/{REPORT,RESULTS,STATE}.md`.
+- Sin tocar: `app/`, `innertube/`, Kotlin, Swift, `project.yml`, versiones, resto de workflows.
+- Preexistente sin commitear: `.gitignore` (se conserva fuera del commit).
+
+## FIX02.3 Veredicto ciclo 1
+
+PENDING_CI: a la espera del run. Registrar aquí: run id, `minimal exit code`, `xcodegen exit code`, y rama H1/H2 según REPORT §FIX02.2.
+
+---
+
 # FASE 01B-FIX01 — Resultados de corrección
 
 Fecha (UTC): 2026-10-09 · Rama `feat/ios-foundation` @ `c97f11ff` · Sin commits/push.

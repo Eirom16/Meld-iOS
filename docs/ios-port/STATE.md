@@ -1,8 +1,8 @@
 # STATE.md — Estado de continuidad del port Meld → iOS
 
-Última actualización (UTC): 2026-10-09 · Rama `feat/ios-foundation` @ `c97f11ff` (sin commit/push en esta fase) · `git diff --check` limpio.
+Última actualización (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `70b3f02b` + commit FIX02-ciclo1 · `git diff --check` limpio.
 
-> 01B-FIX01 (2026-10-09): run #5 con `ios-app` FAIL (XcodeGen 2.46.0 SIGTRAP en "Generating project..."). Corregido con XcodeGen **2.45.4 fijado y verificado por SHA-256** + diagnóstico automático (log + crash reports macOS + artifact en `failure()`). `project.yml` sin errores verificables → sin cambios. 01B sigue IMPLEMENTED / PENDING_CI.
+> 01B-FIX02 ciclo 1/3 (2026-10-11): run #6 refuta la hipótesis de versión (2.45.4 verificado también aborta con exit 133, sin crash reports). Añadida prueba de aislamiento (proyecto `Mini` mínimo con el mismo binario, antes del generate real; artifact `xcodegen-isolation` con `if: always()`). 01B pasa a **BLOCKED** hasta el veredicto H1/H2. Decisión xtool: macOS principal, sin Darwin SDK en Linux, xtool auxiliar/experimental, KMP+CMP conservados, sin migración a Swift puro (ver REPORT §FIX02.0).
 
 ## 1. Objetivo general
 
@@ -24,7 +24,7 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 |---|---|---|
 | 00 — Auditoría técnica | Diagnóstico + matriz A–E | **COMPLETE** 2026-10-09 (capítulos Fase 00 conservados bajo los de 01A/01B) |
 | 01A — Fundación KMP + framework | Toolchain 2.4.20, `shared/`, workflow 2 jobs | **VERIFIED** (run #4 @ `34ba79a3`: frameworks sim+device PASS, `:app:assembleFossDebug` PASS, Xcode 26.4.1) |
-| 01B — CMP + host iOS | `MeldApp()`, `MainViewController()`, `iosApp/`, job `ios-app` → `MeldIOS.app` | **IMPLEMENTED** 2026-10-09 (klib iOS con CMP compilado en local PASS; `.app` y regresión PENDING_CI) |
+| 01B — CMP + host iOS | `MeldApp()`, `MainViewController()`, `iosApp/`, job `ios-app` → `MeldIOS.app` | **BLOCKED** 2026-10-11 (FIX02-ciclo1: aislamiento mínimo pendiente de CI; H1 binario/runner vs H2 spec) |
 | 01C — Generación de IPA | Archive + export sin firma / `Payload/` para sideloading | **NOT STARTED** (requiere job `ios-app` en verde) |
 | 02+ — Transporte MP, modelos, Room/DataStore, player AVFoundation | — | **NOT STARTED** (B2 InnerTubeX sigue siendo la incógnita mayor) |
 
@@ -37,6 +37,7 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 ## 5. Bloqueos abiertos
 
 - CI pendiente: subir `feat/ios-foundation` y reportar el job `ios-app` (y re-verde de los otros dos). FIX01 aplicado: si `xcodegen-diagnostics` aparece, revisar log + `.ips` antes de tocar el spec.
+- FIX02 ciclo 1 en CI: registrar `minimal exit code` (artifact `xcodegen-isolation`) + `xcodegen exit code` del proyecto real; decidir H1 (binario/runner → plan alternativo sin inventar `.xcodeproj`) o H2 (spec → bisección, sospechoso nº1: 1 sola config Debug).
 - Incógnita menor: nombre exacto del símbolo Swift si la regla de facade difiriera (el grep de CI lo dictamina con candidatos en el log).
 - XcodeGen latest: si una versión futura rompe `project.yml`, fijar versión.
 - B2 InnerTubeX · B3 OkHttp · B4 `SpotifyAuth` JVM-only · B6 migraciones Room (fuera de alcance hasta Fase 02).
@@ -48,7 +49,7 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 
 ## 7. Información crítica para el siguiente agente
 
-- Rama `feat/ios-foundation` (publicar = tarea del propietario). No commit/push/merge. `AGENTS.md` vigente; solo los tres informes de `docs/ios-port/` son Markdown editable.
+- Rama `feat/ios-foundation`. Autonomía FIX02 vigente: commits + push solo a esta rama, máx. 3 ciclos CI, sin force-push/reset destructivo/merge/release/main. Preexistente `.gitignore` modificado: conservar fuera de los commits. `AGENTS.md` vigente; solo los tres informes de `docs/ios-port/` son Markdown editable.
 - Rutas clave 01B: `shared/src/commonMain/.../ui/MeldApp.kt`, `shared/src/iosMain/.../MainViewController.kt`, `iosApp/project.yml`, `iosApp/MeldIOS/*`, `.github/workflows/ios-foundation.yml` (job `ios-app`), `gradle/libs.versions.toml` (clave `composeMultiplatform`).
 - Cifras ancla: 6135 lín. `MusicService`, 531 `.kt`, 56 Media3, 54 Hilt, 223 JVM/Android-imports, 57 locales, 20 entidades Room, 14 ops GQL Spotify.
 - No afirmar VERIFIED sin GHA; no inventar comandos (reales en `RESULTS.md §01B.1`).

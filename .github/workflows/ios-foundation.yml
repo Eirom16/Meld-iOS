@@ -211,6 +211,68 @@ jobs:
           bin_dir="$(cd "$(dirname "$bin_path")" && pwd)"
           echo "$bin_dir" >> "$GITHUB_PATH"
 
+      - name: XcodeGen isolation test (minimal project)
+        # FIX02 ciclo 1: distingue binario roto en el runner de spec roto.
+        # Genera un proyecto mínimo en $RUNNER_TEMP con el MISMO binario y
+        # guarda el log en xcodegen-minimal.log. Nunca falla el job (exit 0):
+        # el árbitro es el artifact, no el exit code de este paso.
+        run: |
+          set -uo pipefail
+          echo "--- host ---"
+          sw_vers || true
+          echo "--- binary ---"
+          which xcodegen || true
+          file "$(which xcodegen)" || true
+          lipo -info "$(which xcodegen)" || true
+          xcodegen --version || true
+          echo "--- minimal spec ---"
+          mini="$RUNNER_TEMP/xcodegen-minimal"
+          rm -rf "$mini"
+          mkdir -p "$mini/Hello"
+          printf 'print("hi")\n' > "$mini/Hello/dummy.swift"
+          cat > "$mini/project.yml" <<'EOF'
+          name: Mini
+          options:
+            deploymentTarget:
+              iOS: "16.0"
+          configs:
+            Debug: debug
+            Release: release
+          targets:
+            Mini:
+              type: application
+              platform: iOS
+              deploymentTarget: "16.0"
+              sources:
+                - path: Hello
+          schemes:
+            Mini:
+              build:
+                targets:
+                  Mini: all
+              run:
+                config: Debug
+          EOF
+          cat "$mini/project.yml"
+          echo "--- minimal generate ---"
+          set +e
+          ( cd "$mini" && xcodegen generate >"$GITHUB_WORKSPACE/xcodegen-minimal.log" 2>&1; echo "$?" >"$RUNNER_TEMP/xcmin.code" )
+          mincode="$(cat "$RUNNER_TEMP/xcmin.code")"
+          echo "minimal exit code: $mincode"
+          cat "$GITHUB_WORKSPACE/xcodegen-minimal.log" || true
+          echo "--- minimal output ---"
+          ls -la "$mini" || true
+          echo "isolation step done (never fails the job)"
+          exit 0
+
+      - name: Upload XcodeGen isolation log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodegen-isolation
+          path: xcodegen-minimal.log
+          if-no-files-found: warn
+
       - name: Generate Xcode project
         run: |
           cd iosApp
