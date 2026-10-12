@@ -1,3 +1,31 @@
+# FASE 02C — Integración InnerTubeX + búsqueda real (ciclo 1/3)
+
+Fecha (UTC): 2026-10-12 · Rama `feat/ios-foundation` @ `6bc80ce8` + cambios 02C · Autonomía GitHub activa (commit+push a la rama, 1 ciclo CI consumido de 3).
+
+## 02C.1 Comandos ejecutados
+
+| # | Comando | Resultado |
+|---|---|---|
+| 1 | `git branch/HEAD/status` + lectura `AGENTS.md`, `STATE/REPORT/RESULTS`, `02B-*` (4 docs), `settings/shared gradle`, `libs.versions.toml` | PASS. HEAD `6bc80ce8` (= autorizado), rama `feat/ios-foundation`, limpio |
+| 2 | 2 subagentes (upstream innertubex / uso local) + `webfetch` (`build.gradle.kts`, `gradle.properties`, `CHANGELOG`, `libs.versions.toml` upstream, `.module` JitPack iosArm64, maven-metadata serialization/ktor-darwin/quickjs-iosarm64) | PASS. v0.8.4 + coordenada + variantes iOS + transitivas + Kotlin 2.4.20 verificados |
+| 3 | Edición `libs.versions.toml` (ktor→3.6.0, innertubex→v0.8.4, +serialization 1.11.0/coroutines-core/darwin/cio) + `shared/build.gradle.kts` (plugin serialization, deps por sourceSet) | PASS. `git diff --check` limpio |
+| 4 | Porte `sed` package-rename 31→34 ficheros `innertube/` a `shared/.../innertube/` + nuevos `ParseTime/HttpClientFactory(×3)/YouTubeMusicSearch/SongSearchRepository/SearchScreen` + wiring `MeldApp` (5ª pestaña) + `LoadingView(message=)` | PASS. `app/` e `innertube/` intactos |
+| 5 | `:shared:compileKotlinJvm+compileKotlinIosSimulatorArm64+compileKotlinIosArm64` | PASS tras 2 fixes (cierre PlaylistPanel×3, `@JvmInline` con import). iOS resuelve innertubex nativo |
+| 6 | Tests nuevos (`YouTubeMusicSearchTest` 13, `SongSearchMappingTest` 8, `ParseTimeTest` 2, `SearchFixtures`) + `:shared:jvmTest` | PASS **41/41** (18 prev + 23 nuevos, 0 fallos). Fixture JSON depurado con parser real |
+| 7 | Docs `02C-{INNERTUBEX-INTEGRATION,NETWORK-VALIDATION}.md` + update REPORT/RESULTS/STATE | PASS, mismo commit |
+| 8 | Commit + push a `feat/ios-foundation` (este ciclo) | PENDING → registrar run id y veredicto abajo tras la ejecución |
+
+## 02C.2 Archivos (ciclo 1)
+
+- MODIFICADO: `gradle/libs.versions.toml`, `shared/build.gradle.kts`, `shared/.../ui/{MeldApp,CatalogComponents}.kt`.
+- CREADO: `shared/.../innertube/{models×31,models/response/SearchResponse,pages/{SearchPage,PageHelper},utils/ParseTime}.kt`, `shared/.../network/HttpClientFactory.kt`, `shared/.../network/HttpClientFactory.{ios,jvm}.kt`, `shared/.../search/YouTubeMusicSearch.kt`, `shared/.../music/SongSearchRepository.kt`, `shared/.../ui/SearchScreen.kt`, `shared/src/commonTest/.../{search/{YouTubeMusicSearchTest,SearchFixtures},music/SongSearchMappingTest,innertube/utils/ParseTimeTest}.kt`.
+- ACTUALIZADO: `docs/ios-port/{02C-*,REPORT,RESULTS,STATE}.md`.
+- Sin tocar: `app/**`, `innertube/**`, `iosApp/**`, workflow (4 jobs, 13 checks), Kotlin/Compose/Gradle/XcodeGen.
+
+## 02C.3 Veredicto ciclo 1 — PENDING_CI (registrar abajo)
+
+---
+
 # FASE 02B — Auditoría de portabilidad (ciclo 1)
 
 Fecha (UTC): 2026-10-12 · Rama `feat/ios-foundation` @ `9825cbfe` · Solo investigación + docs.

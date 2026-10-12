@@ -127,13 +127,13 @@ fun SectionTitle(text: String) {
 }
 
 @Composable
-fun LoadingView() {
+fun LoadingView(message: String = "Loading demo catalog…") {
     Box(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "Loading demo catalog…",
+            text = message,
             color = MaterialTheme.colorScheme.onBackground,
         )
     }

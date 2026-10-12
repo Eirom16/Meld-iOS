@@ -1,3 +1,20 @@
+# FASE 02C — InnerTubeX para iOS + primera búsqueda real (autonomía GitHub, máx. 3 ciclos CI)
+
+Fecha (UTC): 2026-10-12 · Rama `feat/ios-foundation` @ `6bc80ce8` · Estado: IMPLEMENTED, PENDING_CI, ciclo CI 1/3.
+
+## 02C.1 Alcance y decisiones
+
+- InnerTubeX **v0.8.4** (`com.github.MetrolistGroup.innertubex:innertubex:v0.8.4`, JitPack variant-aware): variantes `iosArm64`/`iosSimulatorArm64` publicadas y verificadas en sus `.module` (klibs + transitivas ktor 3.6.0 / serialization-json 1.11.0 / coroutines-core 1.11.0 / quickjs-kt 1.0.15 / stdlib 2.4.20). iOS existe upstream desde 0.6.0; 0.5.2 (Meld) no compila a Native; 0.8.0–0.8.2 nunca se publicaron. Sin degradar Kotlin (2.4.20 = upstream) ni Compose/Gradle; único bump ktor 3.5.2 → 3.6.0 (requires transitivo).
+- Resolución Nativa probada en local: `:shared:compileKotlinJvm + compileKotlinIosSimulatorArm64 + compileKotlinIosArm64` SUCCESS (2 incidencias resueltas sin ocultar errores: cierre `PlaylistPanel*`/`Automix*` no portado; `@JvmInline` con import en commonMain). Sin composite build ni fork (GPL-3.0, uso en repo).
+- Reutilización: 34 ficheros de `innertube/` portados verbatim a `shared/.../innertube/` (cierre de búsqueda: 31 models + `SearchResponse` + `SearchPage`/`PageHelper`; `ParseTime` adaptado; `YouTubeClient/Locale` no se portan — eran typealias a innertubex). `app/` e `innertube/` intactos.
+- Transporte: `createYouTubeHttpClient()` (mirror de `createClient()` sin OkHttp/proxy/caché/auth) + `expect/actual` (Darwin / CIO-test-host). Sin credenciales, sin TLS custom.
+- Operación: `YouTubeMusicSearch.search()` (FILTER_SONG) + `searchContinuation()` + `SongSearchRepository → Track`, errores como `failure` (cero datos falsos). UI: 5ª pestaña Search (carga, resultados live etiquetados, vacío, error+reintento, detalle reutilizado, sin play). Tests MockEngine **41/41** local (+23 nuevos). Workflow intacto (4 jobs, 13 checks).
+- Detalle: `docs/ios-port/02C-{INNERTUBEX-INTEGRATION,NETWORK-VALIDATION}.md`.
+
+## 02C.2 Veredicto ciclo 1 — PENDING (registrar run id y resultado abajo tras CI)
+
+---
+
 # FASE 02B — Auditoría de reutilización y plan de migración (solo investigación)
 
 Fecha (UTC): 2026-10-12 · Rama `feat/ios-foundation` @ `9825cbfe` · Estado: AUDIT COMPLETE / MIGRATION PLAN READY.

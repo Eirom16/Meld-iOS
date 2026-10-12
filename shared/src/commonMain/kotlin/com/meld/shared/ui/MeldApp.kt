@@ -38,10 +38,14 @@ import com.meld.shared.music.Album
 import com.meld.shared.music.Artist
 import com.meld.shared.music.CatalogSnapshot
 import com.meld.shared.music.DemoCatalog
+import com.meld.shared.music.InMemoryMusicCatalogRepository
 import com.meld.shared.music.MusicCatalogRepository
 import com.meld.shared.music.Playlist
 import com.meld.shared.music.Track
+import com.meld.shared.music.YouTubeSongSearchRepository
 import com.meld.shared.music.snapshot
+import com.meld.shared.network.createYouTubeHttpClient
+import com.meld.shared.search.YouTubeMusicSearch
 
 private val MeldDarkColors =
     darkColorScheme(
@@ -57,9 +61,10 @@ private sealed interface Route {
     data class AlbumDetail(val id: String) : Route
     data class ArtistDetail(val id: String) : Route
     data class PlaylistDetail(val id: String) : Route
+    data class SearchTrackDetail(val tracks: List<Track>, val id: String) : Route
 }
 
-private val TAB_TITLES = listOf("Songs", "Albums", "Artists", "Playlists")
+private val TAB_TITLES = listOf("Songs", "Albums", "Artists", "Playlists", "Search")
 
 /**
  * First functional Meld-iOS screen (Phase 02A): browsable demo music catalog
@@ -71,6 +76,12 @@ private val TAB_TITLES = listOf("Songs", "Albums", "Artists", "Playlists")
 @Composable
 fun MeldApp() {
     val repository = remember { DemoCatalog.repository() }
+    // Fase 02C: búsqueda real YouTube Music (cliente app-lifetime, Darwin en
+    // iOS). Las pestañas 0-3 siguen usando el catálogo de demostración.
+    val searchRepository =
+        remember {
+            YouTubeSongSearchRepository(YouTubeMusicSearch(createYouTubeHttpClient()))
+        }
     var route by remember { mutableStateOf<Route>(Route.Tabs(0)) }
     var snapshot by remember { mutableStateOf<CatalogSnapshot?>(null) }
     var loadError by remember { mutableStateOf<String?>(null) }
@@ -105,6 +116,8 @@ fun MeldApp() {
                                 onAlbum = { route = Route.AlbumDetail(it) },
                                 onArtist = { route = Route.ArtistDetail(it) },
                                 onPlaylist = { route = Route.PlaylistDetail(it) },
+                                searchRepository = searchRepository,
+                                onSearchTrack = { tracks, id -> route = Route.SearchTrackDetail(tracks, id) },
                             )
                         is Route.TrackDetail ->
                             TrackDetailScreen(
@@ -134,6 +147,13 @@ fun MeldApp() {
                                 onBack = { route = Route.Tabs(3) },
                                 onTrack = { route = Route.TrackDetail(it) },
                             )
+                        is Route.SearchTrackDetail ->
+                            TrackDetailScreen(
+                                repository = remember(r.tracks) { InMemoryMusicCatalogRepository(tracks = r.tracks) },
+                                trackId = r.id,
+                                onBack = { route = Route.Tabs(4) },
+                                onAlbum = { route = Route.Tabs(4) },
+                            )
                     }
             }
         }
@@ -150,6 +170,8 @@ private fun TabsScreen(
     onAlbum: (String) -> Unit,
     onArtist: (String) -> Unit,
     onPlaylist: (String) -> Unit,
+    searchRepository: com.meld.shared.music.SongSearchRepository,
+    onSearchTrack: (List<Track>, String) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -222,7 +244,7 @@ private fun TabsScreen(
                         )
                     },
                 )
-            else ->
+            3 ->
                 CatalogList(
                     modifier = Modifier.padding(innerPadding),
                     items = snapshot.playlists,
@@ -235,6 +257,12 @@ private fun TabsScreen(
                             onClick = { onPlaylist(playlist.id) },
                         )
                     },
+                )
+            else ->
+                SearchScreen(
+                    searchRepository = searchRepository,
+                    onTrack = onSearchTrack,
+                    modifier = Modifier.padding(innerPadding),
                 )
         }
     }
