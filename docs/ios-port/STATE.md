@@ -1,6 +1,6 @@
 # STATE.md — Estado de continuidad del port Meld → iOS
 
-Última actualización (UTC): 2026-10-12 · Rama `feat/ios-foundation` @ `6bc80ce8` + cambios 02C · **02C — IMPLEMENTED / PENDING_CI** (ciclo CI 1/3) · 02A DEVICE VERIFIED · 02B AUDIT COMPLETE.
+Última actualización (UTC): 2026-10-12 · Rama `feat/ios-foundation` @ `9f444e85` · **02C — CI VERIFIED / DEVICE RETEST PENDING** (run #19 `38191702414`, 4/4 SUCCESS; live-JVM: 20 hits reales) · 02A DEVICE VERIFIED · 02B AUDIT COMPLETE.
 
 > 02B — AUDIT COMPLETE / MIGRATION PLAN READY (2026-10-12, commit `4a50bbf6`, run #18 `38187686201` 4/4 SUCCESS
 > docs-only): auditoría de 531 `.kt` (377 con plataforma / 154 candidatos),
@@ -48,7 +48,7 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 | 01D — Arranque en iPhone físico | Crash SIGABRT (`PlistSanityCheck`): IPA sin `CADisableMinimumFrameDurationOnPhone` | **DEVICE VERIFIED** 2026-10-11 (smoke test manual del propietario: IPA 01D-FIX01 firmado con 3uTools, arranque + render + 6 taps OK en iPhone 11 Pro; alcance limitado) |
 | 02A — Fundación iOS-only + catálogo musical | Settings solo `:shared`; `MusicCatalogRepository` + demo + UI navegable + 18 tests | **DEVICE VERIFIED** 2026-10-12 (propietario, iPhone 11 Pro; alcance: UI demo, sin streaming) |
 | 02B — Auditoría reutilización + plan migración | Inventario ~70 comp., mapa deps, roadmap P0→P1→P2, hallazgo iTX-iOS 0.6.0 | **AUDIT COMPLETE / MIGRATION PLAN READY** 2026-10-12 (pendiente push) |
-| 02C — InnerTubeX iOS + búsqueda real | iTX v0.8.4 + Darwin + `search()` + UI Search + 41 tests | **IMPLEMENTED / PENDING_CI** 2026-10-12 (ciclo 1/3; live en iPhone pendiente del propietario) |
+| 02C — InnerTubeX iOS + búsqueda real | iTX v0.8.4 + Darwin + `search()` + UI Search + 41 tests | **CI VERIFIED / DEVICE RETEST PENDING** 2026-10-12 (run #19, ciclo 1/3; live-JVM 20 hits; device test pendiente del propietario) |
 | 02C+ — Transporte real, modelos remotos, player AVFoundation | — | **NOT STARTED** |
 
 ## 4. Últimas fases concluidas
@@ -70,12 +70,11 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 
 ## 6. Próximo objetivo
 
-**Fase 02C** (IMPLEMENTED 2026-10-12, ciclo CI 1/3 PENDING): InnerTubeX v0.8.4
-resolviendo para iosArm64/iosSimulatorArm64, transporte Darwin, `search()`
-songs + UI Search + 41/41 tests en local. Tras el verde CI, el propietario
-prueba en iPhone (búsqueda manual); hasta entonces NO declarar live verified.
-Siguientes decisiones (P0.2/P0.3, requieren autorización nueva): D2 PoToken
-iOS · cipher/extracción · player AVFoundation. No iniciarlas en esta fase.
+**Fase 02C** (CI VERIFIED 2026-10-12, run #19 `38191702414` 4/4 SUCCESS,
+ciclo CI 1/3; IPA 18.403.646 bytes SHA `0582a19b…62cea445`; live-JVM con 20
+hits reales): el propietario firma/instala este IPA y prueba la pestaña
+Search en su iPhone (búsqueda manual + regreso + sin cierres). Tras su OK:
+**02C — DEVICE VERIFIED**. No declarar live en iPhone hasta entonces.
 Decisiones pendientes del propietario: D1 bump iTX (¿valida regresión Android?) · D2 PoToken iOS · D3 Room-KMP ·
 D4 Koin/manual · D5 Router · D6 alcance Spotify · D7 orden P0 (recomendado: búsqueda+playback primero).
 

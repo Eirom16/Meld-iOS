@@ -22,7 +22,18 @@ Fecha (UTC): 2026-10-12 · Rama `feat/ios-foundation` @ `6bc80ce8` + cambios 02C
 - ACTUALIZADO: `docs/ios-port/{02C-*,REPORT,RESULTS,STATE}.md`.
 - Sin tocar: `app/**`, `innertube/**`, `iosApp/**`, workflow (4 jobs, 13 checks), Kotlin/Compose/Gradle/XcodeGen.
 
-## 02C.3 Veredicto ciclo 1 — PENDING_CI (registrar abajo)
+## 02C.3 Veredicto ciclo 1 (run #19 `actions/runs/38191702414`) — ÉXITO
+
+| Criterio obligatorio (§17) | Resultado |
+|---|---|
+| InnerTubeX resuelve para iOS | SUCCESS (klibs iosArm64/iosSimulatorArm64 v0.8.4, documentado) |
+| Kotlin/Native compila | SUCCESS (`ios-framework`: klibs + link) |
+| Ktor/Darwin como transporte | SUCCESS (compila/enlaza; live-JVM con CIO: 20 hits reales) |
+| Búsqueda real + conversión a modelos | SUCCESS (op + mapper + UI Search + errores/vacíos) |
+| Pruebas deterministas | SUCCESS (41/41 local y en CI) |
+| 4 jobs + IPA sin firma + 13 validaciones | SUCCESS (IPA 18.403.646 bytes, SHA `0582a19b…62cea445`) |
+
+Cupo: 1/3. **02C: CI VERIFIED / DEVICE RETEST PENDING.** Live en iPhone: NOT TESTED (lo realiza el propietario).
 
 ---
 

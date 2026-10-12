@@ -11,7 +11,25 @@ Fecha (UTC): 2026-10-12 · Rama `feat/ios-foundation` @ `6bc80ce8` · Estado: IM
 - Operación: `YouTubeMusicSearch.search()` (FILTER_SONG) + `searchContinuation()` + `SongSearchRepository → Track`, errores como `failure` (cero datos falsos). UI: 5ª pestaña Search (carga, resultados live etiquetados, vacío, error+reintento, detalle reutilizado, sin play). Tests MockEngine **41/41** local (+23 nuevos). Workflow intacto (4 jobs, 13 checks).
 - Detalle: `docs/ios-port/02C-{INNERTUBEX-INTEGRATION,NETWORK-VALIDATION}.md`.
 
-## 02C.2 Veredicto ciclo 1 — PENDING (registrar run id y resultado abajo tras CI)
+## 02C.2 Veredicto ciclo 1 (run #19 `actions/runs/38191702414`, commit `9f444e85`) — 02C CI VERIFIED
+
+- Los 4 jobs SUCCESS: `ios-framework` (klibs + link con innertubex iOS),
+  `shared-tests` (`:shared:jvmTest` 41/41), `ios-app` (simulador arm64),
+  `ios-device-ipa` (16/16 líneas PASS incl. las 13 validaciones:
+  `CADisableMinimumFrameDurationOnPhone boolean true`, `platform IOS`,
+  minos 16.0, sdk 26.4, arm64 sin x86_64, bundle `com.eirom16.meldios`,
+  MeldShared estático, sin firma, sin junk).
+- IPA `MeldIOS-unsigned-device.ipa`: **18.403.646 bytes**, SHA-256
+  `0582a19b789d61f0dcb7c7c1750263f46fb61db6828192eab39989ed62cea445`
+  (+4,3 MB vs 02A: klib innertubex + QuickJS nativo + ktor-darwin; esperado).
+- Prueba live adicional (local Linux/JVM+CIO, fuera de CI, sonda temporal
+  borrada tras usarla): `search("Ojos Verdes")` → **20 items reales**
+  (p. ej. "Ojos Verdes | Juan Sajona | 307 s"), parseados por el
+  `SearchPage.toYTItem` portado. Prueba parsing + transporte + API contra
+  producción; el eslabón pendiente es solo el engine Darwin en iPhone.
+- Cupo: 1/3. **Estado: 02C — CI VERIFIED / DEVICE RETEST PENDING**
+  (la búsqueda real en iPhone la confirma el propietario firmando e
+  instalando este IPA).
 
 ---
 

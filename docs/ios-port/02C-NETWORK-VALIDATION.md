@@ -69,10 +69,13 @@ Local `:shared:jvmTest` **41/41 PASS** (02A: 18 → 02C: 41; +23):
 | `ParseTimeTest` | 2 | `3:45`/`12.34`/`1:02:03`, inválidos→null |
 | 02A intactos | 18 | `ModelsTest` 9 + `RepositoryTest` 9, sin cambios |
 
-Sin llamadas reales en CI por diseño. La conexión real la valida el
-propietario en iPhone (búsqueda manual); hasta entonces el estado honesto es
-`NATIVE BUILD VERIFIED / LIVE SEARCH UNVERIFIED` si CI está verde pero el
-device test está pendiente.
+Sin llamadas reales en CI por diseño. Evidencia live adicional (2026-10-12,
+local Linux/JVM+CIO, sonda temporal borrada tras usarla, sin credenciales):
+`search("Ojos Verdes")` → 20 items reales de producción (5 primeros:
+Juan Sajona 307 s, Kiko Rodriguez 237 s, etc.), parseados por el código
+portado. Cubre parsing + transporte + API real; pendiente solo el engine
+Darwin en el iPhone del propietario (prueba manual con el IPA de esta fase);
+hasta entonces no se declara live en iPhone.
 
 ## 5. CI y validación nativa (sin cambios de workflow)
 
