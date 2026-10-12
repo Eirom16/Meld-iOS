@@ -2,7 +2,8 @@
 
 Última actualización (UTC): 2026-10-12 · Rama `feat/ios-foundation` @ `9825cbfe` · **02A — DEVICE VERIFIED** (propietario, iPhone 11 Pro) · **02B — AUDIT COMPLETE / MIGRATION PLAN READY** (pendiente push documental).
 
-> 02B — AUDIT COMPLETE / MIGRATION PLAN READY (2026-10-12, `9825cbfe`): auditoría de 531 `.kt` (377 con plataforma / 154 candidatos),
+> 02B — AUDIT COMPLETE / MIGRATION PLAN READY (2026-10-12, commit `4a50bbf6`, run #18 `38187686201` 4/4 SUCCESS
+> docs-only): auditoría de 531 `.kt` (377 con plataforma / 154 candidatos),
 > inventario de ~70 componentes, mapa de dependencias, roadmap P0→P1→P2. Hallazgo clave: InnerTubeX upstream es KMP con iOS
 > desde 0.6.0; Meld fija 0.5.2 → vía de salida subir a 0.8.x. Estimación funcional: DIRECT ~15 % / ADAPT ~35 % / ADAPTER ~20 % /
 > ANDROID_ONLY ~25 % / DEFER ~5 %. Documentos: `docs/ios-port/02B-{PORTABILITY-AUDIT,REUSE-INVENTORY,MIGRATION-ROADMAP,DEPENDENCY-MAP}.md`.

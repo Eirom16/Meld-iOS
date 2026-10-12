@@ -20,7 +20,13 @@ Fecha (UTC): 2026-10-12 · Rama `feat/ios-foundation` @ `9825cbfe` · Solo inves
 - ACTUALIZADO: `docs/ios-port/{REPORT,RESULTS,STATE}.md` (+ cierre 02A DEVICE VERIFIED).
 - Sin tocar: `shared/**`, `iosApp/**`, `app/**`, `innertube/**`, Gradle, workflows.
 
-## 02B.3 Veredicto ciclo 1 — PENDING_PUSH (registrar CI si se ejecuta; los docs no requieren verde funcional)
+## 02B.3 Veredicto ciclo 1 (run #18 `actions/runs/38187686201`, commit `4a50bbf6`) — ÉXITO (docs-only)
+
+| Criterio | Resultado |
+|---|---|
+| Push solo documental (sin cambios funcionales) | 4 nuevos + 3 informes; `shared/iosApp/Gradle/workflows` intactos |
+| `ios-framework` / `shared-tests` / `ios-app` / `ios-device-ipa` | SUCCESS ×4 (18/18 tests, 13/13 validaciones) |
+| Fase 02B | **AUDIT COMPLETE / MIGRATION PLAN READY** |
 
 ---
 

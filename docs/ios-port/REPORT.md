@@ -46,7 +46,12 @@ Actualizados: `REPORT/RESULTS/STATE.md`. Sin cambios funcionales (UI 02A, `app/`
 Experimentos: solo lectura + conteos + webfetch upstream (sin spikes de compilación).
 Push a `feat/ios-foundation` (docs-only; si CI corre, registrar abajo sin declararlo bloqueo).
 
-## 02B.5 Veredicto ciclo 1 (PENDING → registrar run id tras el push)
+## 02B.5 Veredicto ciclo 1 (run #18 `actions/runs/38187686201`, commit `4a50bbf6`) — 02B CI GREEN (docs-only)
+
+- Push solo documental (4 ficheros nuevos + 3 informes; `shared/`, `iosApp/`, Gradle, workflows intactos).
+- Los 4 jobs SUCCESS: `ios-framework`, `shared-tests` (18/18), `ios-app`, `ios-device-ipa` (13/13).
+- Conclusión: la auditoría no rompe nada; el verde era el esperado (sin cambios funcionales).
+- Estado final: **02B — AUDIT COMPLETE / MIGRATION PLAN READY**. Nada portado (analizado ≠ portado).
 
 ---
 
