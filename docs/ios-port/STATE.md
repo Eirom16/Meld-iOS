@@ -1,6 +1,16 @@
 # STATE.md — Estado de continuidad del port Meld → iOS
 
-Última actualización (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `bd0e97a4` + veredicto 02A documental (ciclo CI 2/3 al hacer push) · `git diff --check` limpio.
+Última actualización (UTC): 2026-10-12 · Rama `feat/ios-foundation` @ `9825cbfe` · **02A — DEVICE VERIFIED** (propietario, iPhone 11 Pro) · **02B — AUDIT COMPLETE / MIGRATION PLAN READY** (pendiente push documental).
+
+> 02B — AUDIT COMPLETE / MIGRATION PLAN READY (2026-10-12, `9825cbfe`): auditoría de 531 `.kt` (377 con plataforma / 154 candidatos),
+> inventario de ~70 componentes, mapa de dependencias, roadmap P0→P1→P2. Hallazgo clave: InnerTubeX upstream es KMP con iOS
+> desde 0.6.0; Meld fija 0.5.2 → vía de salida subir a 0.8.x. Estimación funcional: DIRECT ~15 % / ADAPT ~35 % / ADAPTER ~20 % /
+> ANDROID_ONLY ~25 % / DEFER ~5 %. Documentos: `docs/ios-port/02B-{PORTABILITY-AUDIT,REUSE-INVENTORY,MIGRATION-ROADMAP,DEPENDENCY-MAP}.md`.
+> Sin cambios funcionales; nada portado (analizado ≠ portado).
+
+> 02A — DEVICE VERIFIED (2026-10-12, smoke test manual del propietario en iPhone 11 Pro): arranque sin cierres, renderizado
+> Compose, navegación Songs/Albums/Artists/Playlists, datos demo visibles, detalles, regreso, sin cierres inesperados.
+> Sin reproducción musical ni conectividad real (fuera de alcance por diseño).
 
 > 02A — CI VERIFIED / DEVICE RETEST PENDING (2026-10-11, run #17 `38178379518`, commit `bd0e97a4`, ciclo CI 1/3): 4 jobs SUCCESS (`ios-framework`, `shared-tests` con 18/18 tests, `ios-app`, `ios-device-ipa` con 13/13 validaciones incl. plist booleano). IPA `MeldIOS-unsigned-device.ipa` (14.102.066 bytes, SHA-256 `9c49d72f…96c1cbb06`). UI musical en iPhone: NOT TESTED (prueba del propietario pendiente).
 
@@ -35,8 +45,9 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 | 01B — CMP + host iOS | `MeldApp()`, `MainViewController()`, `iosApp/`, job `ios-app` → `MeldIOS.app` | **VERIFIED** 2026-10-11 (run #11: 3 jobs SUCCESS, `BUILD SUCCEEDED` arm64 simulador, `MeldIOS.app` + header + artifacts verificados) |
 | 01C — Generación de IPA | Archive iphoneos + ZIP `Payload/` sin firma, artifact `.ipa` | **VERIFIED** 2026-10-11 (run #14: 4 jobs SUCCESS, 12/12 checks, IPA 13.054.764 bytes) |
 | 01D — Arranque en iPhone físico | Crash SIGABRT (`PlistSanityCheck`): IPA sin `CADisableMinimumFrameDurationOnPhone` | **DEVICE VERIFIED** 2026-10-11 (smoke test manual del propietario: IPA 01D-FIX01 firmado con 3uTools, arranque + render + 6 taps OK en iPhone 11 Pro; alcance limitado) |
-| 02A — Fundación iOS-only + catálogo musical | Settings solo `:shared`; `MusicCatalogRepository` + demo + UI navegable + 18 tests | **CI VERIFIED / DEVICE RETEST PENDING** (run #17: 4 jobs SUCCESS, 13/13 checks, IPA 14.102.066 bytes) |
-| 02B+ — Transporte real, modelos remotos, player AVFoundation | — | **NOT STARTED** |
+| 02A — Fundación iOS-only + catálogo musical | Settings solo `:shared`; `MusicCatalogRepository` + demo + UI navegable + 18 tests | **DEVICE VERIFIED** 2026-10-12 (propietario, iPhone 11 Pro; alcance: UI demo, sin streaming) |
+| 02B — Auditoría reutilización + plan migración | Inventario ~70 comp., mapa deps, roadmap P0→P1→P2, hallazgo iTX-iOS 0.6.0 | **AUDIT COMPLETE / MIGRATION PLAN READY** 2026-10-12 (pendiente push) |
+| 02C+ — Transporte real, modelos remotos, player AVFoundation | — | **NOT STARTED** |
 
 ## 4. Últimas fases concluidas
 
@@ -57,7 +68,12 @@ Adaptar Meld (fork Android de Metrolist, `com.meld.app`, v0.9.2) a iOS con Kotli
 
 ## 6. Próximo objetivo
 
-**Fase 02A — CI VERIFIED / DEVICE RETEST PENDING** (run #17 verde en ciclo 1/3; registro documental en ciclo 2/3): el propietario firma el nuevo IPA, lo instala y prueba la UI del catálogo en su iPhone (la UI musical NO se declara verificada en dispositivo hasta entonces).
+**Fase 02B** (AUDIT COMPLETE 2026-10-12, pendiente push documental): el propietario firma/publica estos docs;
+siguiente fase (02C/P0.1) requiere autorización nueva: spike `innertubex` ≥0.6.0 + `HttpClientFactory(Darwin)`.
+Decisiones pendientes del propietario: D1 bump iTX (¿valida regresión Android?) · D2 PoToken iOS · D3 Room-KMP ·
+D4 Koin/manual · D5 Router · D6 alcance Spotify · D7 orden P0 (recomendado: búsqueda+playback primero).
+
+**Fase 02A — DEVICE VERIFIED** 2026-10-12 (ver §02B.0 en REPORT): UI musical verificada en iPhone del propietario.
 
 **Fase 02B+** (NOT STARTED, requiere autorización nueva): transporte real (Ktor/Darwin, InnerTubeX pendiente B2), autenticación, persistencia, reproductor AVFoundation. No iniciar en esta fase.
 

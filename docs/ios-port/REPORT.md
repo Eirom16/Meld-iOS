@@ -1,3 +1,55 @@
+# FASE 02B — Auditoría de reutilización y plan de migración (solo investigación)
+
+Fecha (UTC): 2026-10-12 · Rama `feat/ios-foundation` @ `9825cbfe` · Estado: AUDIT COMPLETE / MIGRATION PLAN READY.
+
+## 02B.0 Cierre formal de 02A: DEVICE VERIFIED
+
+Evidencia del propietario sobre el IPA 02A (iPhone 11 Pro): arranque sin cierres, renderizado de Compose,
+navegación entre Songs/Albums/Artists/Playlists, datos demo visibles, pantallas de detalle, navegación de regreso,
+sin cierres inesperados. Alcance: UI demo. Sin reproducción musical ni conectividad real (fuera de alcance por diseño).
+Estado: **02A — DEVICE VERIFIED.**
+
+## 02B.1 Método y cifras (medidas, no estimadas)
+
+Sobre el árbol real: 531 `.kt` (app 444 + innertube 87). Con imports directos `android./androidx./java./javax.`:
+377/531 (71 %); sin ellos: 154/531 (29 %), de los cuales ~77 modelos `@Serializable`/utils portables.
+UI (191 `.kt`): 7/191 sin plataforma. Acoplamientos: Media3 56 · Hilt/Dagger 58 · Room 35.
+Criterio funcional: PORTABLE_DIRECT / PORTABLE_ADAPT / REQUIRES_PLATFORM_ADAPTER / ANDROID_ONLY / DEFER
+(definiciones en `02B-PORTABILITY-AUDIT.md` §0). Las 6135 líneas de `MusicService` no se usan para porcentajes.
+
+## 02B.2 Hallazgos principales
+
+- Modelos 02A (`Track/Artist/Album/Playlist`) = subconjunto de lectura correcto del original; nada de `db/entities`
+  (31/33 con Room/Compose/`java.time`) es portable tal cual salvo `LocalItem` y `ArtistPageCache`.
+- UI: pantallas de catálogo PORTABLE_ADAPT (bloqueos aislables: Hilt, CompositionLocals, Coil, 2 APIs plataforma);
+  Player/MiniPlayer ANDROID_ONLY hasta `PlayerController`; menús y sliders/shimmer, ganancia temprana.
+- InnerTube: catálogo/metadatos reutilización alta (parsing puro); extracción audio cero sin port (binario).
+  **Evidencia nueva: InnerTubeX upstream es KMP con `iosArm64/iosSimulatorArm64` desde 0.6.0 (2026-09-07);
+  Meld fija 0.5.2. Vía de salida: subir a 0.8.x (coordenada KMP variant-aware).** PoToken sigue siendo del host.
+- Player: reglas (colas, shuffle/repeat, errores, calidades) portables; motor+sistema se reescriben
+  (AVPlayer/AVAudioSession/MPRemoteCommandCenter). Prerrequisito: interfaz `PlayerController`.
+- Persistencia: Room-KMP / datastore-preferences-core / Koin-manual / navigation-CMP / ktor-darwin / Coil3-KMP.
+  Esquema v41 intocable.
+- Estimación funcional: DIRECT ~15 % · ADAPT ~35 % · ADAPTER ~20 % · ANDROID_ONLY ~25 % · DEFER ~5 %
+  (condicionada al bump de InnerTubeX; método en AUDIT §9).
+
+## 02B.3 Roadmap
+
+P0 (buscar+reproducir: P0.1 transporte → P0.2 catálogo real → P0.3 primer audible → P0.4 controles),
+P1 (biblioteca, favoritos/playlists, home, ajustes, navegación), P2 (descargas, letras, Spotify, avanzado).
+Primeros a portar: DOM-01–05, NET-12, PLY-08/11, UI-03. Detalle en `02B-MIGRATION-ROADMAP.md`.
+
+## 02B.4 Archivos y CI
+
+Creados: `docs/ios-port/02B-{PORTABILITY-AUDIT,REUSE-INVENTORY,MIGRATION-ROADMAP,DEPENDENCY-MAP}.md`.
+Actualizados: `REPORT/RESULTS/STATE.md`. Sin cambios funcionales (UI 02A, `app/`, `innertube/`, Gradle intactos).
+Experimentos: solo lectura + conteos + webfetch upstream (sin spikes de compilación).
+Push a `feat/ios-foundation` (docs-only; si CI corre, registrar abajo sin declararlo bloqueo).
+
+## 02B.5 Veredicto ciclo 1 (PENDING → registrar run id tras el push)
+
+---
+
 # FASE 02A — Fundación iOS-only + primer catálogo musical (autonomía GitHub, máx. 3 ciclos CI)
 
 Fecha (UTC): 2026-10-11 · Rama `feat/ios-foundation` @ `427e4140` (01D-FIX01 CI VERIFIED como base) · Estado: IMPLEMENTED, PENDING_CI, ciclo CI 1/3.
